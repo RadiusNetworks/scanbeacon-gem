@@ -1,6 +1,6 @@
 module ScanBeacon
   class BLE112Scanner
-    SCAN_CMD = [0,1,6,2,1].pack('CCCCC')
+    SCAN_CMD = [0,1,6,2,2].pack('CCCCC')
     SCAN_PARAMS = [0, 5, 6, 7, 200,200, 0].pack('CCCCS<S<C')
     RESET_CMD = [0,1,9,0,0].pack('ccccc')
     MANUFACTURER_AD = 0xFF
@@ -49,6 +49,7 @@ module ScanBeacon
         if (packet_type & 0x80 != 0x00) && (packet_class == 0x06) && (packet_command == 0x00) && beacon?(data)
           advert = Advertisement.new(payload.pack('C*'))
           block.call(advert) if @uuid_filter.nil? || @uuid_filter == advert.uuid
+          puts "payload: #{payload.pack('C*').inspect}"
         end
         clear_the_buffer
       end
