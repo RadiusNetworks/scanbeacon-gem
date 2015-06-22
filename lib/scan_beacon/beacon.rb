@@ -29,7 +29,7 @@ module ScanBeacon
     end
 
     def uuid
-      "#{ids[0][0..7]}-#{ids[0][8..11]}-#{ids[0][12..15]}-#{ids[0][16..19]}-#{ids[0][19..-1]}".upcase
+      "#{ids[0][0..7]}-#{ids[0][8..11]}-#{ids[0][12..15]}-#{ids[0][16..19]}-#{ids[0][20..-1]}".upcase
     end
 
     def major

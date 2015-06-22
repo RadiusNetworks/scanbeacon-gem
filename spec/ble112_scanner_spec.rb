@@ -16,6 +16,6 @@ RSpec.describe ScanBeacon::BLE112Scanner do
     scanner = ScanBeacon::BLE112Scanner.new
     scanner.clear_the_buffer
     buffer.unpack('C*').each {|byte| scanner.append_to_buffer(byte)}
-    expect( scanner.beacons[0].uuid ).to eq("2CBC261B-4A07-4278-A513-38BF3F8012374")
+    expect( scanner.beacons[0].uuid ).to eq("2CBC261B-4A07-4278-A513-8BF3F8012374")
   end
 end
