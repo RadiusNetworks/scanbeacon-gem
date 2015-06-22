@@ -3,15 +3,6 @@ module ScanBeacon
 
     attr_accessor :beacon_type
 
-    @@parsers = []
-    def self.add(parser)
-      @@parsers << parser
-    end
-
-    def self.all
-      @@parsers
-    end
-
     def initialize(beacon_type, layout)
       @beacon_type = beacon_type
       @layout = layout.split(",")
@@ -34,11 +25,18 @@ module ScanBeacon
       return true
     end
 
+    def parse(data)
+      return nil if !matches?(data)
+      Beacon.new(ids: parse_ids(data), power: parse_power(data), beacon_type: @beacon_type)
+    end
+
     def parse_ids(data)
       @ids.map {|id|
         if id[:end] - id[:start] == 1
+          # two bytes, so treat it as a short (big endian)
           data[id[:start]..id[:end]].unpack('S>')[0]
         else
+          # not two bytes, so treat it as a hex string
           data[id[:start]..id[:end]].unpack('H*').join
         end
       }
@@ -46,6 +44,10 @@ module ScanBeacon
 
     def parse_power(data)
       data[@power[:start]..@power[:end]].unpack('c')[0]
+    end
+
+    def inspect
+      "<BeaconParser type=\"#{@beacon_type}\", layout=\"#{@layout.join(",")}\">"
     end
   end
 end
