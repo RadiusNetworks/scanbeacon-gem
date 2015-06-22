@@ -13,17 +13,21 @@ gem install scan_beacon
 ``` ruby
 require 'scan_beacon'
 scanner = ScanBeacon::BLE112Scanner.new
-scanner.scan do |beacon_advert|
-  puts beacon_advert.to_s
+scanner.scan do |beacons|
+  beacons.each do |beacon|
+    puts beacon.inspect
+  end
 end
 ```
 
-## Filter by UUID
+## Set a specific scan cycle period
 ``` ruby
 require 'scan_beacon'
-scanner = ScanBeacon::BLE112Scanner.new(uuid: "2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6")
-scanner.scan do |beacon_advert|
-  puts beacon_advert.to_s
+scanner = ScanBeacon::BLE112Scanner.new cycle_seconds: 2
+scanner.scan do |beacons|
+  beacons.each do |beacon|
+    puts beacon.inspect
+  end
 end
 ```
 
