@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["support@radiusnetworks.com"]
 
   spec.summary       = %q{Provides Beacon scanning functionality}
-  spec.homepage      = "http://www.radiusnetworks.com"
+  spec.homepage      = "https://github.com/RadiusNetworks/scanbeacon-gem"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
