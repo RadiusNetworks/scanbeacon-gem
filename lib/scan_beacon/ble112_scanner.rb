@@ -2,10 +2,6 @@ require 'timeout'
 
 module ScanBeacon
   class BLE112Scanner
-    SCAN_CMD = [0,1,6,2,2].pack('CCCCC')
-    SCAN_PARAMS = [0, 5, 6, 7, 200,200, 0].pack('CCCCS<S<C')
-    RESET_CMD = [0,1,9,0,0].pack('ccccc')
-    MANUFACTURER_AD = 0xFF
 
     DEFAULT_LAYOUTS = {altbeacon: "m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"}
 
