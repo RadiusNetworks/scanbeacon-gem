@@ -5,9 +5,11 @@ module ScanBeacon
     BG_COMMAND = 0
     BG_EVENT = 0x80
     # msg classes
+    BG_MSG_CLASS_SYSTEM = 0
     BG_MSG_CLASS_CONNECTION = 3
     BG_MSG_CLASS_GAP = 6
     # messages
+    BG_RESET = 0
     BG_DISCONNECT = 0
     BG_SET_MODE = 1
     BG_DISCOVER = 2
@@ -49,6 +51,15 @@ module ScanBeacon
 
     def read
       BLE112Response.new( bg_read(@file) )
+    end
+
+    def reset
+      open do
+        @file.write([BG_COMMAND, 1, BG_MSG_CLASS_SYSTEM, BG_RESET, 0].pack('C*'))
+      end
+      # give time for the device to reboot.
+      # TODO: figure out a way that doesn't involve sleeping arbitrarily.
+      sleep 1
     end
 
     class BLE112Response
