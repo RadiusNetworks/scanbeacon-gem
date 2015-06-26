@@ -3,3 +3,6 @@ yell.rb
 yeller.rb
 .DS_Store
 pkg/
+
+# Since this is a gem not an app, ignore the lock file
+Gemfile.lock
