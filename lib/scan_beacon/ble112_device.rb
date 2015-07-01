@@ -35,7 +35,7 @@ module ScanBeacon
 
     def configure_port
       if RUBY_PLATFORM =~ /linux/
-        system("stty -F /dev/ttyACM0 115200 -brkint -icrnl -imaxbel -opost -isig -icanon -iexten -echo -echoe -echok -echoctl -echoke;min=0")
+        system("stty -F #{@port} 115200 -brkint -icrnl -imaxbel -opost -isig -icanon -iexten -echo -echoe -echok -echoctl -echoke;min=0")
       end
     end
 
