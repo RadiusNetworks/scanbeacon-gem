@@ -25,11 +25,18 @@ module ScanBeacon
     end
 
     def open
+      configure_port
       File.open(@port, 'r+b') do |file|
         @file = file
         yield self
       end
       @file = nil
+    end
+
+    def configure_port
+      if RUBY_PLATFORM =~ /linux/
+        system("stty -F #{@port} 115200 -brkint -icrnl -imaxbel -opost -isig -icanon -iexten -echo -echoe -echok -echoctl -echoke;min=0")
+      end
     end
 
     def start_scan
