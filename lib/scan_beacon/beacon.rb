@@ -40,8 +40,12 @@ module ScanBeacon
       ids[2]
     end
 
+    def ad_count
+      @rssis.size
+    end
+
     def inspect
-      "<Beacon ids=#{@ids.join(",")} rssi=#{rssi}, scans=#{@rssis.size}, power=#{@power}, type=\"#{@beacon_types.to_a.join(",")}\">"
+      "<Beacon ids=#{@ids.join(",")} rssi=#{rssi}, scans=#{ad_count}, power=#{@power}, type=\"#{@beacon_types.to_a.join(",")}\">"
     end
   end
 end
