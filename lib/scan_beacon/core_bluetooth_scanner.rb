@@ -1,23 +1,32 @@
 module ScanBeacon
   class CoreBluetoothScanner
-    include ScanBeacon::CoreBluetooth
 
     attr_reader :beacons
 
     def initialize(opts = {})
+      @cycle_seconds = opts[:cycle_seconds] || 1
       @parsers = BeaconParser.default_parsers
       @beacons = []
     end
 
+    def add_parser(parser)
+      @parsers << parser
+    end
+
     def scan
-      cb_scan do |scan|
-        beacon = nil
-        if @parsers.detect {|parser| beacon = parser.parse(scan[:data]) }
-          beacon.mac = scan[:device]
-          add_beacon(beacon, scan[:rssi])
+      CoreBluetooth::scan do
+        sleep @cycle_seconds
+        CoreBluetooth::new_adverts.each do |scan|
+          beacon = nil
+          if @parsers.detect {|parser| beacon = parser.parse(scan[:data]) }
+            beacon.mac = scan[:device]
+            add_beacon(beacon, scan[:rssi])
+          end
         end
-        yield @beacons
-        @beacons = []
+        if @beacons.size > 0
+          yield @beacons
+          @beacons = []
+        end
         true
       end
     end

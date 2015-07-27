@@ -5,16 +5,15 @@
 
 // Defining a space for information and references about the module to be stored internally
 VALUE cb_module = Qnil;
-dispatch_group_t scanGroup;
 
 // Prototype for the initialization method - Ruby calls this, not you
-void Init_scanbeaconcb();
-VALUE method_cb_scan();
+void Init_core_bluetooth();
+VALUE method_scan();
+VALUE method_new_adverts();
+VALUE new_scan_hash(NSString* device, NSData *data, NSNumber *rssi);
 
 @interface BLEDelegate : NSObject <CBCentralManagerDelegate>
-
 - (NSArray *)scans;
-
 @end
 
 @implementation BLEDelegate {
@@ -33,6 +32,7 @@ VALUE method_cb_scan();
 {
   NSData *mfgData =  advertisementData[@"kCBAdvDataManufacturerData"];
   if (mfgData) {
+    VALUE hash = new_scan_hash(peripheral.identifier.UUIDString, mfgData, RSSI);
     NSDictionary *scan = @{@"device": peripheral.identifier.UUIDString,
                              @"data": mfgData,
                              @"rssi": RSSI};
@@ -59,46 +59,61 @@ VALUE method_cb_scan();
 
 @end
 
+VALUE sym_device = Qnil;
+VALUE sym_data = Qnil;
+VALUE sym_rssi = Qnil;
+BLEDelegate *bleDelegate;
 
+// initialize our module here
 void Init_core_bluetooth()
 {
-  printf("Init_scanbeaconcb()");
   VALUE scan_beacon_module = rb_const_get(rb_cObject, rb_intern("ScanBeacon"));
   cb_module = rb_define_module_under(scan_beacon_module, "CoreBluetooth");
-  rb_define_method(cb_module, "cb_scan", method_cb_scan, 0);
+  rb_define_singleton_method(cb_module, "scan", method_scan, 0);
+  rb_define_singleton_method(cb_module, "new_adverts", method_new_adverts, 0);
+
+  sym_device = ID2SYM(rb_intern("device"));
+  sym_data = ID2SYM(rb_intern("data"));
+  sym_rssi = ID2SYM(rb_intern("rssi"));
 }
 
-VALUE method_cb_scan()
+// create a ruby hash to yield back to ruby,
+// of the form {device: "xxxx", data: "yyyy", rssi: -99}
+VALUE new_scan_hash(NSString* device, NSData *data, NSNumber *rssi)
+{
+  VALUE hash = rb_hash_new();
+  rb_hash_aset(hash, sym_device, rb_str_new_cstr(device.UTF8String));
+  rb_hash_aset(hash, sym_data, rb_str_new(data.bytes, data.length));
+  rb_hash_aset(hash, sym_rssi, INT2NUM( rssi.integerValue ));
+  return hash;
+}
+
+VALUE method_new_adverts()
+{
+  NSArray *scans = bleDelegate.scans;
+  VALUE ary = rb_ary_new();
+  for (NSDictionary *scan in scans) {
+    VALUE hash = new_scan_hash(scan[@"device"], scan[@"data"], scan[@"rssi"]);
+    rb_ary_push(ary, hash);
+  }
+  return ary;
+}
+
+VALUE method_scan()
 {
   VALUE scans = rb_ary_new();
-  VALUE sym_device = ID2SYM(rb_intern("device"));
-  VALUE sym_data = ID2SYM(rb_intern("data"));
-  VALUE sym_rssi = ID2SYM(rb_intern("rssi"));
 
   @autoreleasepool {
-    BLEDelegate *bleDelegate = [[BLEDelegate alloc] init];
+    bleDelegate = [[BLEDelegate alloc] init];
     dispatch_queue_t scanQueue;// = dispatch_queue_create("com.example.ScanBeacon.scan", DISPATCH_QUEUE_CONCURRENT);
     scanQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0);
     CBCentralManager *centralManager = [[CBCentralManager alloc] initWithDelegate:bleDelegate queue:scanQueue];
     BOOL exit = NO;
     while (!exit) {
-      [NSThread sleepForTimeInterval:0.1f];
-      //sleep(0.1);
-      NSArray *scans = bleDelegate.scans;
-      for (NSDictionary *scan in scans) {
-        VALUE hash = rb_hash_new();
-        NSString *device = scan[@"device"];
-        NSData *data = scan[@"data"];
-        NSNumber *rssi = scan[@"rssi"];
-        rb_hash_aset(hash, sym_device, rb_str_new_cstr(device.UTF8String));
-        rb_hash_aset(hash, sym_data, rb_str_new(data.bytes, data.length));
-        rb_hash_aset(hash, sym_rssi, INT2NUM( rssi.integerValue ));
-        VALUE ret = rb_yield( hash );
-        exit = (ret == Qfalse);
-      }
+      VALUE ret = rb_yield( Qnil );
+      exit = (ret == Qfalse);
     }
     [centralManager stopScan];
   }
   return Qnil;
 }
-
