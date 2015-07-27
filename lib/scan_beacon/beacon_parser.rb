@@ -1,7 +1,11 @@
 module ScanBeacon
   class BeaconParser
-
+    DEFAULT_LAYOUTS = {altbeacon: "m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"}
     attr_accessor :beacon_type
+
+    def self.default_parsers
+      DEFAULT_LAYOUTS.map {|name, layout| BeaconParser.new name, layout }
+    end
 
     def initialize(beacon_type, layout)
       @beacon_type = beacon_type

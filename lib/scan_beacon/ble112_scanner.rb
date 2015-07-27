@@ -3,14 +3,12 @@ require 'timeout'
 module ScanBeacon
   class BLE112Scanner
 
-    DEFAULT_LAYOUTS = {altbeacon: "m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"}
-
     attr_reader :beacons
 
     def initialize(opts = {})
       @device = BLE112Device.new opts[:port]
       @cycle_seconds = opts[:cycle_seconds] || 1
-      @parsers = DEFAULT_LAYOUTS.map {|name, layout| BeaconParser.new name, layout }
+      @parsers = BeaconParser.default_parsers
       @beacons = []
     end
 
