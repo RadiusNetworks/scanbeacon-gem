@@ -9,10 +9,17 @@ A ruby gem that allows you to scan for beacon advertisements using CoreBluetooth
 gem install scan_beacon
 ```
 
-## Start a scan
+## Create your scanner
 ``` ruby
 require 'scan_beacon'
+# to scan using CoreBluetooth on a mac
+scanner = ScanBeacon::CoreBluetoothScanner.new
+# to scan using a BLE112 device
 scanner = ScanBeacon::BLE112Scanner.new
+```
+
+## Start a scan, yield beacons in a loop
+``` ruby
 scanner.scan do |beacons|
   beacons.each do |beacon|
     puts beacon.inspect
@@ -23,7 +30,7 @@ end
 ## Set a specific scan cycle period
 ``` ruby
 require 'scan_beacon'
-scanner = ScanBeacon::BLE112Scanner.new cycle_seconds: 2
+scanner = ScanBeacon::BLE112Scanner.new cycle_seconds: 5
 scanner.scan do |beacons|
   beacons.each do |beacon|
     puts beacon.inspect
@@ -33,15 +40,7 @@ end
 
 ## Scan once for a set period and then return an array of beacons
 ``` ruby
-require 'scan_beacon'
-scanner = ScanBeacon::BLE112Scanner.new cycle_seconds: 2
-beacons = scanner.scan
-```
-
-## Scan using CoreBluetooth on Mac OS X
-``` ruby
-require 'scan_beacon'
-scanner = ScanBeacon::CoreBluetoothScanner.new cycle_seconds: 5
+scanner = ScanBeacon::CoreBluetoothScanner.new cycle_seconds: 2
 beacons = scanner.scan
 ```
 
