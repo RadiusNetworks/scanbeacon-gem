@@ -1,3 +1,5 @@
+#ifdef __APPLE__
+
 // Include the Ruby headers and goodies
 #include "ruby.h"
 #import <Foundation/Foundation.h>
@@ -32,7 +34,6 @@ VALUE new_scan_hash(NSString* device, NSData *data, NSNumber *rssi);
 {
   NSData *mfgData =  advertisementData[@"kCBAdvDataManufacturerData"];
   if (mfgData) {
-    VALUE hash = new_scan_hash(peripheral.identifier.UUIDString, mfgData, RSSI);
     NSDictionary *scan = @{@"device": peripheral.identifier.UUIDString,
                              @"data": mfgData,
                              @"rssi": RSSI};
@@ -51,8 +52,8 @@ VALUE new_scan_hash(NSString* device, NSData *data, NSNumber *rssi);
 {
   NSArray *scanCopy;
   @synchronized(_scans) {
-    scanCopy = [_scans copy];
-    [_scans removeAllObjects];
+    scanCopy = _scans;
+    _scans = [[NSMutableArray alloc] init];
   }
   return scanCopy;
 }
@@ -63,6 +64,7 @@ VALUE sym_device = Qnil;
 VALUE sym_data = Qnil;
 VALUE sym_rssi = Qnil;
 BLEDelegate *bleDelegate;
+CBCentralManager *centralManager;
 
 // initialize our module here
 void Init_core_bluetooth()
@@ -90,13 +92,16 @@ VALUE new_scan_hash(NSString* device, NSData *data, NSNumber *rssi)
 
 VALUE method_new_adverts()
 {
-  NSArray *scans = bleDelegate.scans;
-  VALUE ary = rb_ary_new();
-  for (NSDictionary *scan in scans) {
-    VALUE hash = new_scan_hash(scan[@"device"], scan[@"data"], scan[@"rssi"]);
-    rb_ary_push(ary, hash);
+  @autoreleasepool {
+    VALUE ary = rb_ary_new();
+    NSArray *scans = bleDelegate.scans;
+    for (NSDictionary *scan in scans) {
+      VALUE hash = new_scan_hash( scan[@"device"], scan[@"data"], scan[@"rssi"] );
+      rb_ary_push(ary, hash);
+    }
+    [scans release];
+    return ary;
   }
-  return ary;
 }
 
 VALUE method_scan()
@@ -104,16 +109,22 @@ VALUE method_scan()
   VALUE scans = rb_ary_new();
 
   @autoreleasepool {
-    bleDelegate = [[BLEDelegate alloc] init];
-    dispatch_queue_t scanQueue;// = dispatch_queue_create("com.example.ScanBeacon.scan", DISPATCH_QUEUE_CONCURRENT);
-    scanQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0);
-    CBCentralManager *centralManager = [[CBCentralManager alloc] initWithDelegate:bleDelegate queue:scanQueue];
-    BOOL exit = NO;
-    while (!exit) {
-      VALUE ret = rb_yield( Qnil );
-      exit = (ret == Qfalse);
+    @try {
+      bleDelegate = [[BLEDelegate alloc] init];
+      dispatch_queue_t scanQueue;
+      scanQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0);
+      centralManager = [[CBCentralManager alloc] initWithDelegate:bleDelegate queue:scanQueue];
+      BOOL exit = NO;
+      while (!exit) {
+        VALUE ret = rb_yield( Qnil );
+        exit = (ret == Qfalse);
+      }
     }
-    [centralManager stopScan];
+    @finally {
+      [centralManager stopScan];
+    }
   }
   return Qnil;
 }
+
+#endif // TARGET_OS_MAC

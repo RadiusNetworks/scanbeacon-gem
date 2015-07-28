@@ -6,14 +6,19 @@ module ScanBeacon
     def initialize(opts = {})
       @cycle_seconds = opts[:cycle_seconds] || 1
       @parsers = BeaconParser.default_parsers
-      @beacons = []
     end
 
     def add_parser(parser)
       @parsers << parser
     end
 
+    # Scans for BLE beacons using CoreBluetooth on Mac OS X. If a block is given,
+    # a beacon array will be yielded.  The scan will continue until the block
+    # returns false.  If a block is not given, the method will return an array
+    # of beacons after the set cycle_seconds.
     def scan
+      @beacons = []
+      keep_scanning = true
       CoreBluetooth::scan do
         sleep @cycle_seconds
         CoreBluetooth::new_adverts.each do |scan|
@@ -24,11 +29,16 @@ module ScanBeacon
           end
         end
         if @beacons.size > 0
-          yield @beacons
-          @beacons = []
+          if block_given?
+            keep_scanning = yield(@beacons) != false
+            @beacons = []
+          else
+            keep_scanning = false
+          end
         end
-        true
+        keep_scanning
       end
+      return @beacons unless block_given?
     end
 
     def add_beacon(beacon, rssi)
