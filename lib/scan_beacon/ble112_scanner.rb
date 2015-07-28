@@ -22,19 +22,24 @@ module ScanBeacon
         cycle_end = Time.now + @cycle_seconds
 
         begin
-          while true do
+          scanning = true
+          while scanning do
             check_for_beacon( device.read )
             if Time.now > cycle_end
-              yield @beacons
-              @beacons = []
-              cycle_end = Time.now + @cycle_seconds
+              if block_given?
+                scanning = yield(@beacons) != false
+                @beacons = []
+                cycle_end = Time.now + @cycle_seconds
+              else
+                scanning = false
+              end
             end
           end
         ensure
           device.stop_scan
         end
-
       end
+      return @beacons unless block_given?
     end
 
     def check_for_beacon(response)
