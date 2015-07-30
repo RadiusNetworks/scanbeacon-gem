@@ -7,6 +7,8 @@ extension_name = 'bluez'
 # The destination
 dir_config(extension_name)
 
-abort 'could not find bluetooth library (libbluetooth-dev)' unless have_library("bluetooth")
+if RUBY_PLATFORM =~ /linux/
+  abort 'could not find bluetooth library (libbluetooth-dev)' unless have_library("bluetooth")
+end
 
 create_makefile(extension_name)
