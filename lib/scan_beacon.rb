@@ -4,9 +4,12 @@ require "scan_beacon/beacon_parser"
 require "scan_beacon/generic_scanner"
 require "scan_beacon/ble112_device"
 require "scan_beacon/ble112_scanner"
-if RUBY_PLATFORM =~ /darwin/
+case RUBY_PLATFORM
+when /darwin/
   require "scan_beacon/core_bluetooth"
   require "scan_beacon/core_bluetooth_scanner"
+when /linux/
+  require "scan_beacon/bluez"
 end
 
 module ScanBeacon

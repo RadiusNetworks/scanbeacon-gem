@@ -5,6 +5,6 @@ yeller.rb
 pkg/
 tmp/
 *.bundle
-
+*.so
 # Since this is a gem not an app, ignore the lock file
 Gemfile.lock
