@@ -19,6 +19,7 @@ VALUE method_set_connectable(VALUE self, VALUE connectable);
 VALUE method_set_advertisement_bytes(VALUE self, VALUE bytes);
 VALUE method_start_advertising();
 VALUE method_stop_advertising();
+VALUE method_scan();
 
 #define FLAGS_NOT_CONNECTABLE 0x1A
 #define FLAGS_CONNECTABLE     0x18
@@ -47,6 +48,7 @@ void Init_bluez()
   rb_define_singleton_method(bluez_module, "stop_advertising", method_stop_advertising, 0);
   rb_define_singleton_method(bluez_module, "advertisement_bytes=", method_set_advertisement_bytes, 1);
   rb_define_singleton_method(bluez_module, "connectable=", method_set_connectable, 1);
+  rb_define_singleton_method(bluez_module, "scan", method_scan, 0);
 
   // bring up the device, in case it's not already up
   method_device_up();
@@ -177,6 +179,86 @@ VALUE method_device_down()
   }
   close(ctl);
   return success;
+}
+
+
+VALUE method_scan()
+{
+  int device_id = hci_get_route(NULL);
+  int device_handle = hci_open_dev(device_id);
+  uint8_t scan_type = 0x01; //passive
+  uint8_t own_type = 0x00; // I think this specifies not to use a random MAC
+  uint8_t filter_dups = 0x00;
+  uint8_t filter_policy = 0x00; // ?
+  uint16_t interval = htobs(0x010);
+  uint16_t window = htobs(0x010);
+  hci_le_set_scan_parameters(device_handle, scan_type, interval, window, own_type, filter_policy, 1000);
+  hci_le_set_scan_enable(device_handle, 0x01, 0x00, 1000);
+
+  unsigned char buf[HCI_MAX_EVENT_SIZE], *ptr;
+  struct hci_filter new_filter, old_filter;
+  socklen_t olen;
+  int len;
+
+  olen = sizeof(old_filter);
+  if (getsockopt(device_handle, SOL_HCI, HCI_FILTER, &old_filter, &olen) < 0) {
+    printf("Could not get socket options\n");
+    return -1;
+  }
+
+  hci_filter_clear(&new_filter);
+  hci_filter_set_ptype(HCI_EVENT_PKT, &new_filter);
+  hci_filter_set_event(EVT_LE_META_EVENT, &new_filter);
+
+  if (setsockopt(device_handle, SOL_HCI, HCI_FILTER, &new_filter, sizeof(new_filter)) < 0) {
+    printf("Could not set socket options\n");
+    return -1;
+  }
+
+  int keep_scanning = 1;
+  while (keep_scanning) {
+    evt_le_meta_event *meta;
+    le_advertising_info *info;
+    char addr[18];
+
+    while ((len = read(device_handle, buf, sizeof(buf))) < 0) {
+      if (errno == EAGAIN || errno == EINTR) {
+        continue;
+      }
+      keep_scanning = 0;
+      break;
+    }
+
+    if (len > 0) {
+      ptr = buf + (1 + HCI_EVENT_HDR_SIZE);
+      len -= (1 + HCI_EVENT_HDR_SIZE);
+      meta = (void *) ptr;
+      // check if this event is an  advertisement
+      if (meta->subevent != EVT_LE_ADVERTISING_REPORT) {
+        break;
+      }
+      // parse out the ad data, the mac, and the rssi
+      info = (le_advertising_info *) (meta->data + 1);
+      int8_t rssi = (int8_t)info->data[info->length];
+      VALUE ad_data = rb_str_new(info->data, info->length);
+      ba2str(&info->bdaddr, addr);
+      VALUE rb_addr = rb_str_new(addr, strlen(addr));
+      VALUE rb_ary = rb_ary_new();
+      rb_ary_push(rb_ary, rb_addr);
+      rb_ary_push(rb_ary, ad_data);
+      rb_ary_push(rb_ary, INT2NUM(rssi));
+      // ... and yield it to ruby
+      keep_scanning = rb_yield(rb_ary) != Qfalse;
+    }
+  }
+
+  // put back the old filter
+  setsockopt(device_handle, SOL_HCI, HCI_FILTER, &old_filter, sizeof(old_filter));
+
+  // stop scanning
+  hci_le_set_scan_enable(device_handle, 0x00, 0x00, 1000);
+  hci_close_dev(device_handle);
+  return Qnil;
 }
 
 #endif // linux

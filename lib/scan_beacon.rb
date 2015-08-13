@@ -10,6 +10,7 @@ when /darwin/
   require "scan_beacon/core_bluetooth_scanner"
 when /linux/
   require "scan_beacon/bluez"
+  require "scan_beacon/bluez_scanner"
 end
 
 module ScanBeacon
