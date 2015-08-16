@@ -17,8 +17,8 @@ module ScanBeacon
       @beacons = []
       next_cycle = Time.now + @cycle_seconds
       keep_scanning = true
-      each_advertisement do |data, device, rssi|
-        detect_beacon(data, device, rssi) unless data.nil?
+      each_advertisement do |data, device, rssi, ad_type = BeaconParser::AD_TYPE_MFG|
+        detect_beacon(data, device, rssi, ad_type) unless data.nil?
 
         if Time.now > next_cycle
           if block_given?
@@ -37,9 +37,9 @@ module ScanBeacon
       raise NotImplementedError
     end
 
-    def detect_beacon(data, device, rssi)
+    def detect_beacon(data, device, rssi, ad_type)
       beacon = nil
-      if @parsers.detect {|parser| beacon = parser.parse(data) }
+      if @parsers.detect {|parser| beacon = parser.parse(data, ad_type) }
         beacon.mac = device
         add_beacon(beacon, rssi)
       end

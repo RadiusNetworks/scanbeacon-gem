@@ -11,6 +11,7 @@ when /darwin/
 when /linux/
   require "scan_beacon/bluez"
   require "scan_beacon/bluez_scanner"
+  require "scan_beacon/bluez_advertiser"
 end
 
 module ScanBeacon
