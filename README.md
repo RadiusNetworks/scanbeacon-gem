@@ -75,7 +75,7 @@ advertiser.stop
 beacon = ScanBeacon::Beacon.new(
   ids: ["2F234454F4911BA9FFA6", 3],
   power: -20,
-  service_uuid: 0XFEAA,
+  service_uuid: 0xFEAA,
   beacon_type: :eddystone_uid
 )
 advertiser = ScanBeacon::BlueZAdvertiser.new(beacon: beacon)
@@ -86,4 +86,7 @@ advertiser.stop
 
 
 # Dependencies
-You must have a BLE112 device plugged in to a USB port, or a Mac, or a Linux machine w/ BlueZ installed.
+To scan for beacons, you must have a Linux machine with BlueZ installed, or a Mac, or a BLE112 device plugged in to a USB port (on Mac or Linux).
+
+To advertise as a beacon, you must have a Linux machine with BlueZ installed.
+
