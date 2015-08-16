@@ -54,5 +54,24 @@ scanner.add_parser( ScanBeacon::BeaconParser.new(:mybeacon, "m:2-3=0000,i:4-19,i
 ...
 ```
 
+## Advertise as a beacon on Linux using BlueZ
+Example:
+``` ruby
+# altbeacon
+beacon = ScanBeacon::Beacon.new(ids: ["2F234454CF6D4A0FADF2F4911BA9FFA6", 11,11], power: -59, mfg_id: "1801", beacon_type: :altbeacon)
+advertiser = ScanBeacon::BlueZAdvertiser.new(beacon: beacon)
+advertiser.start
+...
+advertiser.stop
+
+# Eddystone UID
+beacon = ScanBeacon::Beacon.new(ids: ["2F234454F4911BA9FFA6", 3], power: -20, service_uuid: "aafe", beacon_type: :eddystone_uid)
+advertiser = ScanBeacon::BlueZAdvertiser.new(beacon: beacon)
+advertiser.start
+...
+advertiser.stop
+```
+
+
 # Dependencies
-You must have a BLE112 device plugged in to a USB port, or a Mac.
+You must have a BLE112 device plugged in to a USB port, or a Mac, or a Linux machine w/ BlueZ installed.
