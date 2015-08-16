@@ -84,7 +84,7 @@ module ScanBeacon
     end
 
     def parse_mfg_or_service_id(data)
-      data[0..1].unpack('H*')[0]
+      data[0..1].unpack('S>')[0]
     end
 
     def parse_power(data)
@@ -105,9 +105,9 @@ module ScanBeacon
       end
       ad[@power[:start]..@power[:end]] = [beacon.power].pack('c')
       if @ad_type == AD_TYPE_SERVICE
-        "\x03\x03" + [beacon.service_uuid].pack("H*") + [length+1].pack('C') + BT_EIR_SERVICE_DATA + ad
+        "\x03\x03" + [beacon.service_uuid].pack("S<") + [length+1].pack('C') + BT_EIR_SERVICE_DATA + ad
       elsif @ad_type == AD_TYPE_MFG
-        ad[0..1] = [beacon.mfg_id].pack("H*")
+        ad[0..1] = [beacon.mfg_id].pack("S<")
         [length+1].pack('C') + [AD_TYPE_MFG].pack('C') +  ad
       end
     end

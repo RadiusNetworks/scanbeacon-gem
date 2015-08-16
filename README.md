@@ -63,7 +63,7 @@ Example:
 beacon = ScanBeacon::Beacon.new(
   ids: ["2F234454CF6D4A0FADF2F4911BA9FFA6", 11,11],
   power: -59,
-  mfg_id: "1801",
+  mfg_id: 0x0118,
   beacon_type: :altbeacon
 )
 advertiser = ScanBeacon::BlueZAdvertiser.new(beacon: beacon)
@@ -75,7 +75,7 @@ advertiser.stop
 beacon = ScanBeacon::Beacon.new(
   ids: ["2F234454F4911BA9FFA6", 3],
   power: -20,
-  service_uuid: "aafe",
+  service_uuid: 0XFEAA,
   beacon_type: :eddystone_uid
 )
 advertiser = ScanBeacon::BlueZAdvertiser.new(beacon: beacon)
