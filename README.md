@@ -16,6 +16,8 @@ require 'scan_beacon'
 scanner = ScanBeacon::CoreBluetoothScanner.new
 # to scan using a BLE112 device
 scanner = ScanBeacon::BLE112Scanner.new
+# to scan using BlueZ on Linux
+scanner = ScanBeacon::BlueZScanner.new
 ```
 
 ## Start a scan, yield beacons in a loop
