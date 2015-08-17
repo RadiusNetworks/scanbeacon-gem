@@ -12,7 +12,7 @@ VALUE cb_module = Qnil;
 void Init_core_bluetooth();
 VALUE method_scan();
 VALUE method_new_adverts();
-VALUE new_scan_hash(NSString* device, NSData *data, NSNumber *rssi);
+VALUE new_scan_hash(NSString* device, NSData *data, NSNumber *rssi, NSData *service_uuid);
 
 @interface BLEDelegate : NSObject <CBCentralManagerDelegate>
 - (NSArray *)scans;
@@ -33,10 +33,23 @@ VALUE new_scan_hash(NSString* device, NSData *data, NSNumber *rssi);
      advertisementData:(NSDictionary *)advertisementData RSSI:(NSNumber *)RSSI
 {
   NSData *mfgData =  advertisementData[@"kCBAdvDataManufacturerData"];
+  NSDictionary *serviceData =  advertisementData[@"kCBAdvDataServiceData"];
   if (mfgData) {
     NSDictionary *scan = @{@"device": peripheral.identifier.UUIDString,
                              @"data": mfgData,
-                             @"rssi": RSSI};
+                             @"rssi": RSSI
+    };
+    @synchronized(_scans) {
+      [_scans addObject: scan];
+    }
+  } else if (serviceData) {
+    NSData *svcData = [serviceData allValues][0];
+    CBUUID *uuid = serviceData.allKeys[0];
+    NSDictionary *scan = @{@"device": peripheral.identifier.UUIDString,
+                             @"data": svcData,
+                             @"rssi": RSSI,
+                              @"service_uuid": uuid.data
+    };
     @synchronized(_scans) {
       [_scans addObject: scan];
     }
@@ -63,6 +76,7 @@ VALUE new_scan_hash(NSString* device, NSData *data, NSNumber *rssi);
 VALUE sym_device = Qnil;
 VALUE sym_data = Qnil;
 VALUE sym_rssi = Qnil;
+VALUE sym_service_uuid = Qnil;
 BLEDelegate *bleDelegate;
 CBCentralManager *centralManager;
 
@@ -77,16 +91,22 @@ void Init_core_bluetooth()
   sym_device = ID2SYM(rb_intern("device"));
   sym_data = ID2SYM(rb_intern("data"));
   sym_rssi = ID2SYM(rb_intern("rssi"));
+  sym_service_uuid = ID2SYM(rb_intern("service_uuid"));
 }
 
 // create a ruby hash to yield back to ruby,
 // of the form {device: "xxxx", data: "yyyy", rssi: -99}
-VALUE new_scan_hash(NSString* device, NSData *data, NSNumber *rssi)
+VALUE new_scan_hash(NSString* device, NSData *data, NSNumber *rssi, NSData *service_uuid)
 {
   VALUE hash = rb_hash_new();
   rb_hash_aset(hash, sym_device, rb_str_new_cstr(device.UTF8String));
   rb_hash_aset(hash, sym_data, rb_str_new(data.bytes, data.length));
-  rb_hash_aset(hash, sym_rssi, INT2NUM( rssi.integerValue ));
+  rb_hash_aset(hash, sym_rssi, INT2FIX( rssi.integerValue ));
+  if (service_uuid) {
+    uint16_t uuid = *((uint16_t *)service_uuid.bytes);
+    uuid = NSSwapShort(uuid);
+    rb_hash_aset(hash, sym_service_uuid, rb_str_new( (void*)&uuid, 2));
+  }
   return hash;
 }
 
@@ -96,7 +116,7 @@ VALUE method_new_adverts()
     VALUE ary = rb_ary_new();
     NSArray *scans = bleDelegate.scans;
     for (NSDictionary *scan in scans) {
-      VALUE hash = new_scan_hash( scan[@"device"], scan[@"data"], scan[@"rssi"] );
+      VALUE hash = new_scan_hash( scan[@"device"], scan[@"data"], scan[@"rssi"], scan[@"service_uuid"] );
       rb_ary_push(ary, hash);
     }
     [scans release];
