@@ -35,10 +35,6 @@ void Init_bluez()
   rb_define_singleton_method(bluez_module, "scan", method_scan, -1);
   rb_define_singleton_method(bluez_module, "devices", method_devices, 0);
 
-  // bring up the device, in case it's not already up
-  int device_id = hci_get_route(NULL);
-  method_device_up(Qnil, INT2NUM(device_id));
-
   // initialize the advertisement
   init_advertisement();
 }
