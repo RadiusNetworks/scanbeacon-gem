@@ -2,7 +2,7 @@
 require 'mkmf'
 
 # Give it a name
-extension_name = 'bluez'
+extension_name = 'scan_beacon/bluez'
 
 # The destination
 dir_config(extension_name)
