@@ -1,5 +1,3 @@
-require 'timeout'
-
 module ScanBeacon
   class BLE112Scanner < GenericScanner
 

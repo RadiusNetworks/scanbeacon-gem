@@ -16,6 +16,8 @@ require 'scan_beacon'
 scanner = ScanBeacon::CoreBluetoothScanner.new
 # to scan using a BLE112 device
 scanner = ScanBeacon::BLE112Scanner.new
+# to scan using BlueZ on Linux (make sure you have privileges)
+scanner = ScanBeacon::BlueZScanner.new
 ```
 
 ## Start a scan, yield beacons in a loop
@@ -54,5 +56,37 @@ scanner.add_parser( ScanBeacon::BeaconParser.new(:mybeacon, "m:2-3=0000,i:4-19,i
 ...
 ```
 
+## Advertise as a beacon on Linux using BlueZ
+Example:
+``` ruby
+# altbeacon
+beacon = ScanBeacon::Beacon.new(
+  ids: ["2F234454CF6D4A0FADF2F4911BA9FFA6", 11,11],
+  power: -59,
+  mfg_id: 0x0118,
+  beacon_type: :altbeacon
+)
+advertiser = ScanBeacon::BlueZAdvertiser.new(beacon: beacon)
+advertiser.start
+...
+advertiser.stop
+
+# Eddystone UID
+beacon = ScanBeacon::Beacon.new(
+  ids: ["2F234454F4911BA9FFA6", 3],
+  power: -20,
+  service_uuid: 0xFEAA,
+  beacon_type: :eddystone_uid
+)
+advertiser = ScanBeacon::BlueZAdvertiser.new(beacon: beacon)
+advertiser.start
+...
+advertiser.stop
+```
+
+
 # Dependencies
-You must have a BLE112 device plugged in to a USB port, or a Mac.
+To scan for beacons, you must have a Linux machine with BlueZ installed, or a Mac, or a BLE112 device plugged in to a USB port (on Mac or Linux).
+
+To advertise as a beacon, you must have a Linux machine with BlueZ installed.
+

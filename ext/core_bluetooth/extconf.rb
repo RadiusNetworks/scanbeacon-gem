@@ -2,7 +2,7 @@
 require 'mkmf'
 
 # Give it a name
-extension_name = 'core_bluetooth'
+extension_name = 'scan_beacon/core_bluetooth'
 
 # The destination
 dir_config(extension_name)
