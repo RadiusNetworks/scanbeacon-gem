@@ -4,7 +4,8 @@ module ScanBeacon
     attr_accessor :beacon, :parser, :ad
 
     def initialize(opts = {})
-      @device_id = opts[:device_id]
+      @device_id = opts[:device_id] || BlueZ.devices[0][:device_id]
+      BlueZ.device_up @device_id
       self.beacon = opts[:beacon]
       self.parser = opts[:parser]
       self.parser ||= BeaconParser.default_parsers.find {|parser| parser.beacon_type == beacon.beacon_types.first}

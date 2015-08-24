@@ -74,8 +74,13 @@ VALUE method_start_advertising()
   
   // open connection to the device
   int device_id = hci_get_route(NULL);
+  if (device_id < 0) {
+    rb_raise(rb_eException, "Could not find device");
+  }
   int device_handle = hci_open_dev(device_id);
-
+  if (device_handle < 0) {
+    rb_raise(rb_eException, "Could not open device");
+  }
   // set advertising data
   memset(&rq, 0, sizeof(rq));
   rq.ogf = OGF_LE_CTL;
