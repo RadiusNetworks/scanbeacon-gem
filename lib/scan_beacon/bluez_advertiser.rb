@@ -4,7 +4,8 @@ module ScanBeacon
     attr_accessor :beacon, :parser, :ad
 
     def initialize(opts = {})
-      @device_id = opts[:device_id] || BlueZ.devices[0][:device_id]
+      @device_id = opts[:device_id] || BlueZ.devices.map {|d| d[:device_id]}[0]
+      raise "No available devices" if @device_id.nil?
       BlueZ.device_up @device_id
       self.beacon = opts[:beacon]
       self.parser = opts[:parser]
