@@ -19,4 +19,11 @@ RSpec.describe ScanBeacon::BeaconParser do
   it "can parse altbeacon power" do
     expect( altbeacon_parser.parse_power(data) ).to equal(-71)
   end
+
+  it "doesn't require a power field" do
+    layout = "m:0-3=18017e1e,i:4-9,d:10-10"
+    parser = ScanBeacon::BeaconParser.new(:no_power, layout)
+    power = parser.parse_power(payload)
+    expect( power ).to be nil
+  end
 end

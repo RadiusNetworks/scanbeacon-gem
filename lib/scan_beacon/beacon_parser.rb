@@ -33,8 +33,13 @@ module ScanBeacon
         _, range_start, range_end = field.split(/:|-/)
         {start: range_start.to_i, end: range_end.to_i}
       }
-      _, power_start, power_end = @layout.find {|item| item[0] == "p"}.split(/:|-/)
-      @power = {start: power_start.to_i, end: power_end.to_i}
+      power_parser =  @layout.find {|item| item[0] == "p"}
+      if power_parser.nil?
+        @power = nil
+      else
+        _, power_start, power_end = power_parser.split(/:|-/)
+        @power = {start: power_start.to_i, end: power_end.to_i}
+      end
     end
 
     def matches?(data)
@@ -88,6 +93,7 @@ module ScanBeacon
     end
 
     def parse_power(data)
+      return nil if @power.nil?
       data[@power[:start]..@power[:end]].unpack('c')[0]
     end
 
