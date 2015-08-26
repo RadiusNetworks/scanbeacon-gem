@@ -32,15 +32,16 @@ module ScanBeacon
     end
 
     def uuid
-      "#{ids[0][0..7]}-#{ids[0][8..11]}-#{ids[0][12..15]}-#{ids[0][16..19]}-#{ids[0][20..-1]}".upcase
+      id0 = ids[0].to_s
+      "#{id0[0..7]}-#{id0[8..11]}-#{id0[12..15]}-#{id0[16..19]}-#{id0[20..-1]}".upcase
     end
 
     def major
-      ids[1]
+      ids[1].to_i
     end
 
     def minor
-      ids[2]
+      ids[2].to_i
     end
 
     def ad_count
