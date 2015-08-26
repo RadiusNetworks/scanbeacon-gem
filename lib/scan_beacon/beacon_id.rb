@@ -4,20 +4,24 @@ module ScanBeacon
     ENCODING = "ASCII-8BIT".freeze
     NULL_BYTE = "\x00".force_encoding(ENCODING).freeze
 
-    def initialize(bytes: nil, hex: nil, number: nil, length: nil)
-      self.set_data(bytes: bytes, hex: hex, number: number, length: length)
+    def initialize(opts = {})
+      self.set_data(opts)
     end
 
     def self.id_with_length(id, length)
       return id if id.is_a? BeaconId
       if id.is_a? String
         BeaconId.new hex: id, length: length
-      elsif id.is_a? Fixnum
+      elsif id.is_a? Integer
         BeaconId.new number: id, length: length
       end
     end
 
-    def set_data(bytes: nil, hex: nil, number: nil, length: nil)
+    def set_data(opts = {})
+      bytes = opts[:bytes]
+      hex = opts[:hex]
+      number = opts[:number]
+      length = opts[:length]
       if bytes
         @data = bytes.force_encoding(ENCODING)
       elsif hex
