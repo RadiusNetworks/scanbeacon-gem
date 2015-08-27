@@ -2,7 +2,7 @@ module ScanBeacon
   class BeaconParser
     DEFAULT_LAYOUTS = {
       altbeacon: "m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25",
-      eddystone_uid: "s:0-1=aafe,m:2-2=00,p:3-3:-41,i:4-13,i:14-19;d:20-21"
+      eddystone_uid: "s:0-1=feaa,m:2-2=00,p:3-3:-41,i:4-13,i:14-19;d:20-21"
     }
     AD_TYPE_MFG = 0xff
     AD_TYPE_SERVICE = 0x03
@@ -38,7 +38,12 @@ module ScanBeacon
         }
         field_params[:expected] = [expected].pack("H*") unless expected.nil?
         case field_type
-        when 'm', 's'
+        when 'm'
+          @matchers << field_params
+        when 's'
+          # swap byte order of service uuid
+          expected = field_params[:expected]
+          field_params[:expected] = expected[1] + expected[0]
           @matchers << field_params
         when 'i'
           @ids << field_params

@@ -9,8 +9,14 @@ RSpec.describe ScanBeacon::BeaconParser do
   let(:data) { payload[16..-1] }
   let(:altbeacon_layout) { "m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25" }
   let(:altbeacon_parser) { ScanBeacon::BeaconParser.new :altbeacon, altbeacon_layout }
+  let(:eddystone_uid_parser) {
+    ScanBeacon::BeaconParser.default_parsers.find {|p| p.beacon_type == :eddystone_uid }
+  }
   let(:generated_ad) {
     "\e\xFF\x18\x01\xBE\xAC/#DT\xCFmJ\x0F\xAD\xF2\xF4\x91\e\xA9\xFF\xA6\x00\v\x00\v\xC5\x05".force_encoding("ASCII-8BIT")
+  }
+  let(:generated_uid_ad) {
+    "\x03\x03\xAA\xFE\x15\x16\xAA\xFE\x00\xEC/#DT\xF4\x91\e\xA9\xFF\xA6\x00\x00\x00\x00\x00\x03".force_encoding("ASCII-8BIT")
   }
 
   it "can use an altbeacon layout to parse an altbeacon advertisement" do
@@ -41,5 +47,15 @@ RSpec.describe ScanBeacon::BeaconParser do
       beacon_type: :altbeacon
     )
     expect( altbeacon_parser.generate_ad(beacon) ).to eq( generated_ad )
+  end
+
+  it "can generate Eddystone-UID advertisement bytes" do
+    beacon = ScanBeacon::Beacon.new(
+      ids: ["2F234454F4911BA9FFA6", 3],
+      power: -20,
+      service_uuid: 0xFEAA,
+      beacon_type: :eddystone_uid
+    )
+    expect( eddystone_uid_parser.generate_ad(beacon) ).to eq( generated_uid_ad )
   end
 end
