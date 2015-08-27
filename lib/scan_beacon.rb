@@ -5,6 +5,7 @@ require "scan_beacon/beacon_parser"
 require "scan_beacon/generic_scanner"
 require "scan_beacon/ble112_device"
 require "scan_beacon/ble112_scanner"
+require "scan_beacon/ble112_advertiser"
 case RUBY_PLATFORM
 when /darwin/
   require "scan_beacon/core_bluetooth"
