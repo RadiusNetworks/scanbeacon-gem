@@ -14,7 +14,11 @@ module ScanBeacon
           while keep_scanning do
             response = device.read
             if response.advertisement?
-              keep_scanning = false if yield(response.advertisement_data, response.mac, response.rssi) == false
+              if response.manufacturer_ad?
+                keep_scanning = false if yield(response.advertisement_data, response.mac, response.rssi) == false
+              else
+                keep_scanning = false if yield(response.advertisement_data[4..-1], response.mac, response.rssi, 0x03) == false
+              end
             end
           end
         ensure

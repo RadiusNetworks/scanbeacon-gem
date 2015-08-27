@@ -110,7 +110,7 @@ module ScanBeacon
 
     class BLE112Response
       def initialize(data)
-        @data = data
+        @data = data.force_encoding("ASCII-8BIT")
       end
 
       def size
@@ -129,8 +129,12 @@ module ScanBeacon
         size > 20 && advertisement_type == 0xFF
       end
 
+      def service_ad?
+        size > 20 && advertisement_type ==0x03
+      end
+
       def advertisement?
-        event? && gap_scan? && manufacturer_ad?
+        event? && gap_scan? && (manufacturer_ad? || service_ad?)
       end
 
       def advertisement_type
