@@ -4,7 +4,7 @@ require 'scan_beacon'
 RSpec.describe ScanBeacon::CoreBluetoothScanner do
   let(:scan) {
     {:device=>"92151608-5EE2-4783-A08B-C17F13A179D7",
-     :data=>"\x18\x01\xBE\xAC\xBE\xAC\xBE\xACUSNETWORKSCO\x00\x01\x00\f\xBE\x00",
+     :data=>"\x18\x01\xBE\xAC\xBE\xAC\xBE\xACUSNETWORKSCO\x00\x01\x00\f\xBE\x00".force_encoding("ASCII-8BIT"),
      :rssi=>-50}
   }
   let(:scanner_opts) { {cycle_seconds: 0} }

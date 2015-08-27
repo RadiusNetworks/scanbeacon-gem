@@ -15,36 +15,44 @@ module ScanBeacon
 
     def initialize(beacon_type, layout)
       @beacon_type = beacon_type
-      @layout = layout.split(",")
       if layout.include?("s")
         @ad_type = AD_TYPE_SERVICE
       else
         @ad_type = AD_TYPE_MFG
       end
-      @matchers = @layout.find_all {|item| ["m", "s"].include? item[0]}.map {|matcher|
-        _, range_start, range_end, expected = matcher.split(/:|=|-/)
-        {start: range_start.to_i, end: range_end.to_i, expected: expected}
-      }
-      @ids = @layout.find_all {|item| item[0] == "i"}.map {|id|
-        _, range_start, range_end = id.split(/:|-/)
-        {start: range_start.to_i, end: range_end.to_i}
-      }
-      @data_fields = @layout.find_all {|item| item[0] == "d"}.map {|field|
-        _, range_start, range_end = field.split(/:|-/)
-        {start: range_start.to_i, end: range_end.to_i}
-      }
-      power_parser =  @layout.find {|item| item[0] == "p"}
-      if power_parser.nil?
-        @power = nil
-      else
-        _, power_start, power_end = power_parser.split(/:|-/)
-        @power = {start: power_start.to_i, end: power_end.to_i}
+      @layout = layout
+      parse_layout
+    end
+
+    def parse_layout
+      @matchers = []
+      @ids = []
+      @data_fields = []
+      @power = nil
+      @layout.split(",").each do |field|
+        field_type, range_start, range_end, expected = field.split(/:|=|-/)
+        field_params = {
+          start: range_start.to_i,
+          end: range_end.to_i,
+          length: range_end.to_i - range_start.to_i + 1,
+        }
+        field_params[:expected] = [expected].pack("H*") unless expected.nil?
+        case field_type
+        when 'm', 's'
+          @matchers << field_params
+        when 'i'
+          @ids << field_params
+        when 'd'
+          @data_fields << field_params
+        when 'p'
+          @power = field_params
+        end
       end
     end
 
     def matches?(data)
       @matchers.each do |matcher|
-        return false unless data[matcher[:start]..matcher[:end]].unpack("H*").join == matcher[:expected]
+        return false unless data[matcher[:start]..matcher[:end]] == matcher[:expected]
       end
       return true
     end
@@ -65,13 +73,13 @@ module ScanBeacon
     end
 
     def parse_data_fields(data)
-      parse_elems(@data_fields, data).map(&:bytes)
+      parse_elems(@data_fields, data)
     end
 
     def parse_elems(elems, data)
       elems.map {|elem|
         elem_str = data[elem[:start]..elem[:end]]
-        BeaconId.new(bytes: elem_str)
+        Beacon::Field.new(bytes: elem_str)
       }
     end
 
@@ -88,17 +96,15 @@ module ScanBeacon
       length = [@matchers, @ids, @power, @data_fields].flatten.map {|elem| elem[:end] }.max + 1
       ad = ("\x00" * length).force_encoding("ASCII-8BIT")
       @matchers.each do |matcher|
-        ad[matcher[:start]..matcher[:end]] = [matcher[:expected]].pack("H*")
+        ad[matcher[:start]..matcher[:end]] = matcher[:expected]
       end
       @ids.each_with_index do |id, index|
-        id_length = id[:end] - id[:start] + 1
-        id_bytes = BeaconId.id_with_length(beacon.ids[index], id_length).bytes
+        id_bytes = Beacon::Field.field_with_length(beacon.ids[index], id[:length]).bytes
         ad[id[:start]..id[:end]] = id_bytes
       end
       @data_fields.each_with_index do |field, index|
         unless beacon.data[index].nil?
-          field_length = field[:end] - field[:start] + 1
-          field_bytes = BeaconId.id_with_length(beacon.data[index], field_length).bytes
+          field_bytes = Beacon::Field.field_with_length(beacon.data[index], field[:length]).bytes
           ad[field[:start]..field[:end]] = field_bytes
         end
       end
@@ -112,7 +118,7 @@ module ScanBeacon
     end
 
     def inspect
-      "<BeaconParser type=\"#{@beacon_type}\", layout=\"#{@layout.join(",")}\">"
+      "<BeaconParser type=\"#{@beacon_type}\", layout=\"#{@layout}\">"
     end
   end
 end
