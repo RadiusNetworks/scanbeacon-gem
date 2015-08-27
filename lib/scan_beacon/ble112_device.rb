@@ -12,6 +12,10 @@ module ScanBeacon
     BG_RESET = 0
     BG_DISCONNECT = 0
     BG_SET_MODE = 1
+    BG_GAP_SET_PRIVACY_FLAGS = 0
+    BG_GAP_SET_ADV_PARAM = 8
+    BG_GAP_SET_ADV_DATA = 9
+
     BG_DISCOVER = 2
     BG_DISCOVER_STOP = 4
     BG_SCAN_PARAMS = 7
@@ -19,6 +23,8 @@ module ScanBeacon
     BG_GAP_DISCOVER_ALL = 2
     BG_GAP_NON_DISCOVERABLE = 0
     BG_GAP_NON_CONNECTABLE = 0
+    BG_GAP_USER_DATA = 4
+    BG_GAP_CONNECTABLE = 2
 
     def initialize(port=nil)
       @port = port || Dir.glob("/dev/{cu.usbmodem,ttyACM}*")[0]
@@ -54,6 +60,39 @@ module ScanBeacon
 
     def stop_scan
       bg_command(@file, BG_MSG_CLASS_GAP, BG_DISCOVER_STOP)
+    end
+
+    def start_private
+      # disconnect any connections
+      bg_command(@file, BG_MSG_CLASS_CONNECTION, BG_DISCONNECT,0)
+
+      # set advertising interval 0x300 = 480 ms interval, 7 = all channels
+      bg_command(@file, BG_MSG_CLASS_GAP, BG_GAP_SET_ADV_PARAM, [0x00, 0x03, 0x00, 0x03, 7])
+
+      # set privacy mode (rotate bluetooth address)
+      bg_command(@file, BG_MSG_CLASS_GAP, BG_GAP_SET_PRIVACY_FLAGS, [1, 0])
+
+      change_bluetooth_address
+
+      # advertise data
+      adv_pdu = [0x02, 0x01, 0x06, 0x1A, 0xFF, 0x4C, 0x00, 0x02, 0x15, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0x00] +
+                [0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 0x00, 0x01, 0x00, 0x02, 0xC6]
+
+      bg_command(@file, BG_MSG_CLASS_GAP, BG_GAP_SET_ADV_DATA, [0, adv_pdu.size] + adv_pdu
+      )
+    end
+
+    def change_bluetooth_address
+      # set peripheral into private mode is not needed, as the mac is rotated every time gap_set_mode is called
+      # bg_command(@file, BG_MSG_CLASS_GAP, BG_GAP_SET_PRIVACY_FLAGS, [1, 0])
+
+      # set gap mode
+      bg_command(@file, BG_MSG_CLASS_GAP, BG_SET_MODE, [BG_GAP_USER_DATA, BG_GAP_CONNECTABLE])
+    end
+
+    def stop_adv
+      # turn off adverts
+      bg_command(@file, BG_MSG_CLASS_GAP, BG_SET_MODE, [BG_GAP_NON_DISCOVERABLE, BG_GAP_NON_CONNECTABLE])
     end
 
     def read
