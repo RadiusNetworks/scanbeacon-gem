@@ -62,36 +62,36 @@ module ScanBeacon
       bg_command(@file, BG_MSG_CLASS_GAP, BG_DISCOVER_STOP)
     end
 
-    def start_private
+    def start_advertising(ad_data, privacy = false)
       # disconnect any connections
       bg_command(@file, BG_MSG_CLASS_CONNECTION, BG_DISCONNECT,0)
 
-      # set advertising interval 0x300 = 480 ms interval, 7 = all channels
-      bg_command(@file, BG_MSG_CLASS_GAP, BG_GAP_SET_ADV_PARAM, [0x00, 0x03, 0x00, 0x03, 7])
+      # set advertising interval 0x00A0 = 100 ms interval, 7 = all channels
+      bg_command(@file, BG_MSG_CLASS_GAP, BG_GAP_SET_ADV_PARAM, [0xA0, 0x00, 0xA0, 0x00, 7])
 
       # set privacy mode (rotate bluetooth address)
-      bg_command(@file, BG_MSG_CLASS_GAP, BG_GAP_SET_PRIVACY_FLAGS, [1, 0])
+      if privacy
+        bg_command(@file, BG_MSG_CLASS_GAP, BG_GAP_SET_PRIVACY_FLAGS, [1, 0])
+      end
 
-      change_bluetooth_address
+      # add flags header
+      ad_data = "\x02\x01\x06" + ad_data
+      ad_data = [0,ad_data.size].pack("C*") + ad_data
 
-      # advertise data
-      adv_pdu = [0x02, 0x01, 0x06, 0x1A, 0xFF, 0x4C, 0x00, 0x02, 0x15, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0x00] +
-                [0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 0x00, 0x01, 0x00, 0x02, 0xC6]
-
-      bg_command(@file, BG_MSG_CLASS_GAP, BG_GAP_SET_ADV_DATA, [0, adv_pdu.size] + adv_pdu
-      )
+      stop_advertising
+      bg_command(@file, BG_MSG_CLASS_GAP, BG_GAP_SET_ADV_DATA, ad_data.unpack("C*"))
+      bg_command(@file, BG_MSG_CLASS_GAP, BG_SET_MODE, [BG_GAP_USER_DATA, BG_GAP_CONNECTABLE])
     end
 
-    def change_bluetooth_address
+    def rotate_addr
       # set peripheral into private mode is not needed, as the mac is rotated every time gap_set_mode is called
-      # bg_command(@file, BG_MSG_CLASS_GAP, BG_GAP_SET_PRIVACY_FLAGS, [1, 0])
+      bg_command(@file, BG_MSG_CLASS_GAP, BG_GAP_SET_PRIVACY_FLAGS, [1, 0])
 
       # set gap mode
       bg_command(@file, BG_MSG_CLASS_GAP, BG_SET_MODE, [BG_GAP_USER_DATA, BG_GAP_CONNECTABLE])
     end
 
-    def stop_adv
-      # turn off adverts
+    def stop_advertising
       bg_command(@file, BG_MSG_CLASS_GAP, BG_SET_MODE, [BG_GAP_NON_DISCOVERABLE, BG_GAP_NON_CONNECTABLE])
     end
 
