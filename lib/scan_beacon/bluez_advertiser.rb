@@ -29,7 +29,12 @@ module ScanBeacon
     end
 
     def start
-      BlueZ.start_advertising @device_id
+      BlueZ.start_advertising @device_id, nil
+    end
+
+    def start_with_random_addr
+      addr = random_addr
+      BlueZ.start_advertising @device_id, addr
     end
 
     def stop
@@ -45,19 +50,9 @@ module ScanBeacon
     end
 
     def rotate_addr_and_update_ad
-      self.addr = self.random_addr
       self.update_ad
-      self.start
-    end
-
-    def addr=(new_addr)
-      stop
-      @addr = new_addr
-      BlueZ.set_addr @device_id, @addr
-    end
-
-    def reset_addr
-      self.addr = @initial_addr
+      self.stop
+      self.start_with_random_addr
     end
 
     def random_addr
