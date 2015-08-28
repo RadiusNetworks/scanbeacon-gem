@@ -25,7 +25,6 @@ typedef struct {
 } Advertisement;
 
 Advertisement advertisements[10];
-int advertising[10] = {0,0,0,0,0,0,0,0,0,0};
 
 VALUE method_start_advertising();
 
@@ -68,18 +67,15 @@ VALUE method_set_advertisement_bytes(VALUE self, VALUE rb_device_id, VALUE bytes
   set_advertisement_flags(advertisement);
   advertisement->len = len + advertisement->flags.len + 1; // + 1 is to account for the flags length field
   memcpy(advertisement->ad_data, RSTRING_PTR(bytes), len);
-  if (advertising[device_id]) {
-    method_start_advertising(Qnil, INT2FIX(device_id));
-  }
   return bytes;
 }
 
-VALUE method_start_advertising(VALUE klass, VALUE rb_device_id)
+VALUE method_start_advertising(VALUE klass, VALUE rb_device_id, VALUE random_address)
 {
   struct hci_request rq;
   le_set_advertising_parameters_cp adv_params_cp;
   uint8_t status;
-  
+
   // open connection to the device
   int device_id = FIX2INT(rb_device_id);
   if (device_id < 0) {
@@ -106,6 +102,9 @@ VALUE method_start_advertising(VALUE klass, VALUE rb_device_id)
   adv_params_cp.max_interval = interval_100ms;
   adv_params_cp.advtype = 0x03; // non-connectable undirected advertising
   adv_params_cp.chan_map = 0x07;// all 3 channels
+  if (random_address != Qnil) {
+    adv_params_cp.own_bdaddr_type = LE_RANDOM_ADDRESS;
+  }
   memset(&rq, 0, sizeof(rq));
   rq.ogf = OGF_LE_CTL;
   rq.ocf = OCF_LE_SET_ADVERTISING_PARAMETERS;
@@ -115,12 +114,26 @@ VALUE method_start_advertising(VALUE klass, VALUE rb_device_id)
   rq.rlen = 1;
   hci_send_req(device_handle, &rq, 1000);
 
+  if (random_address != Qnil)
+  {
+    // set random address
+    le_set_random_address_cp random_addr_cp;
+    str2ba(StringValuePtr(random_address), &random_addr_cp.bdaddr);
+    memset(&rq, 0, sizeof(rq));
+    rq.ogf = OGF_LE_CTL;
+    rq.ocf = OCF_LE_SET_RANDOM_ADDRESS;
+    rq.cparam = &random_addr_cp;
+    rq.clen = LE_SET_RANDOM_ADDRESS_CP_SIZE;
+    rq.rparam = &status;
+    rq.rlen = 1;
+    hci_send_req(device_handle, &rq, 1000);
+  }
+
   // turn on advertising
   hci_le_set_advertise_enable(device_handle, 0x01, 1000);
 
   // and close the connection
   hci_close_dev(device_handle);
-  advertising[device_id] = 1;
   return Qnil;
 }
 
@@ -130,7 +143,6 @@ VALUE method_stop_advertising(VALUE klass, VALUE rb_device_id)
   int device_handle = hci_open_dev(device_id);
   hci_le_set_advertise_enable(device_handle, 0x00, 1000);
   hci_close_dev(device_handle);
-  advertising[device_id] = 0;
   return Qnil;
 }
 
