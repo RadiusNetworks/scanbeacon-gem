@@ -1,5 +1,4 @@
 #ifdef linux
-#include "ruby.h"
 #include <stdio.h>
 #include <errno.h>
 #include <unistd.h>
@@ -8,6 +7,7 @@
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
 #include <bluetooth/hci_lib.h>
+#include "ruby.h"
 #pragma pack(1)
 
 
@@ -75,13 +75,15 @@ VALUE method_start_advertising(VALUE klass, VALUE rb_device_id, VALUE random_add
   struct hci_request rq;
   le_set_advertising_parameters_cp adv_params_cp;
   uint8_t status;
+  int device_handle;
+  uint16_t interval_100ms = htobs(0x00A0); // 0xA0 * 0.625ms = 100ms
 
   // open connection to the device
   int device_id = FIX2INT(rb_device_id);
   if (device_id < 0) {
     rb_raise(rb_eException, "Could not find device");
   }
-  int device_handle = hci_open_dev(device_id);
+  device_handle = hci_open_dev(device_id);
   if (device_handle < 0) {
     rb_raise(rb_eException, "Could not open device");
   }
@@ -97,7 +99,6 @@ VALUE method_start_advertising(VALUE klass, VALUE rb_device_id, VALUE random_add
 
   // set advertising params
   memset(&adv_params_cp, 0, sizeof(adv_params_cp));
-  uint16_t interval_100ms = htobs(0x00A0); // 0xA0 * 0.625ms = 100ms
   adv_params_cp.min_interval = interval_100ms;
   adv_params_cp.max_interval = interval_100ms;
   adv_params_cp.advtype = 0x03; // non-connectable undirected advertising
