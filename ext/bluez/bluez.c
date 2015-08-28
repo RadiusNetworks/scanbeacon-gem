@@ -1,5 +1,4 @@
 #ifdef linux
-#include "ruby.h"
 #include <stdio.h>
 #include <errno.h>
 #include <unistd.h>
@@ -8,6 +7,7 @@
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
 #include <bluetooth/hci_lib.h>
+#include "ruby.h"
 
 VALUE bluez_module = Qnil;
 

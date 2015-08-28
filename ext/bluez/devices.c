@@ -1,5 +1,4 @@
 #ifdef linux
-#include "ruby.h"
 #include <stdio.h>
 #include <errno.h>
 #include <unistd.h>
@@ -8,6 +7,7 @@
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
 #include <bluetooth/hci_lib.h>
+#include "ruby.h"
 
 #include "utils.h"
 
@@ -67,6 +67,8 @@ VALUE method_devices()
   struct hci_dev_req *dr;
   struct hci_dev_info di;
   int i;
+  int ctl;
+  VALUE devices;
 
   if (!(dl = malloc(HCI_MAX_DEV * sizeof(struct hci_dev_req) + sizeof(uint16_t)))) {
     rb_raise(rb_eException, "Can't allocate memory");    
@@ -75,13 +77,13 @@ VALUE method_devices()
   dl->dev_num = HCI_MAX_DEV;
   dr = dl->dev_req;
 
-  int ctl = socket(AF_BLUETOOTH, SOCK_RAW, BTPROTO_HCI);
+  ctl = socket(AF_BLUETOOTH, SOCK_RAW, BTPROTO_HCI);
   if (ioctl(ctl, HCIGETDEVLIST, (void *) dl) < 0) {
     rb_raise(rb_eException, "Can't get device list");    
     return Qnil;
   }
 
-  VALUE devices = rb_ary_new();
+  devices = rb_ary_new();
 
   for (i = 0; i< dl->dev_num; i++) {
     di.dev_id = (dr+i)->dev_id;

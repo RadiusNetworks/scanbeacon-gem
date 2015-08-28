@@ -1,5 +1,4 @@
 #ifdef linux
-#include "ruby.h"
 #include <stdio.h>
 #include <errno.h>
 #include <unistd.h>
@@ -9,6 +8,7 @@
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
 #include <bluetooth/hci_lib.h>
+#include "ruby.h"
 
 #include "utils.h"
 
@@ -34,6 +34,7 @@ VALUE method_scan(int argc, VALUE *argv, VALUE klass)
   uint16_t window = htobs(0x0005);
 
   struct hci_filter new_filter;
+  socklen_t filter_size;
 
   // which device was specified?
   rb_scan_args(argc, argv, "01", &rb_device_id);
@@ -49,7 +50,7 @@ VALUE method_scan(int argc, VALUE *argv, VALUE klass)
   device_handles[device_id] = device_handle;
  
   // save the old filter so we can restore it later
-  socklen_t filter_size = sizeof(stored_filters[0]);
+  filter_size = sizeof(stored_filters[0]);
   if (getsockopt(device_handle, SOL_HCI, HCI_FILTER, &stored_filters[device_id], &filter_size) < 0) {
     rb_raise(rb_eException, "Could not get socket options");
   }
@@ -82,15 +83,16 @@ VALUE perform_scan(VALUE device_id_in)
   while (keep_scanning) {
     evt_le_meta_event *meta;
     le_advertising_info *info;
+    int ret;
 
     // wait for data with a timeout
     fd_set set;
+    struct timeval timeout;
     FD_ZERO(&set);
     FD_SET(device_handle, &set);
-    struct timeval timeout;
     timeout.tv_sec = 0;
     timeout.tv_usec = 200000; // 200ms
-    int ret = select(device_handle + 1, &set, NULL, NULL, &timeout);
+    ret = select(device_handle + 1, &set, NULL, NULL, &timeout);
     if (ret < 0) {
       rb_raise(rb_eException, "Error waiting for data");
     } else if (ret == 0) {
@@ -109,6 +111,7 @@ VALUE perform_scan(VALUE device_id_in)
     }
 
     if (len > 0) {
+      VALUE rssi, ad_data, addr;
       ptr = buf + (1 + HCI_EVENT_HDR_SIZE);
       len -= (1 + HCI_EVENT_HDR_SIZE);
       meta = (void *) ptr;
@@ -118,9 +121,9 @@ VALUE perform_scan(VALUE device_id_in)
       }
       // parse out the ad data, the mac, and the rssi
       info = (le_advertising_info *) (meta->data + 1);
-      VALUE rssi = INT2FIX( (int8_t)info->data[info->length] );
-      VALUE ad_data = rb_str_new((void *)info->data, info->length);
-      VALUE addr = ba2value(&info->bdaddr);
+      rssi = INT2FIX( (int8_t)info->data[info->length] );
+      ad_data = rb_str_new((void *)info->data, info->length);
+      addr = ba2value(&info->bdaddr);
       keep_scanning = rb_yield_values(3, addr, ad_data, rssi) != Qfalse;
     }
   }
