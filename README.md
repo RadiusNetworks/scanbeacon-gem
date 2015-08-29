@@ -8,6 +8,7 @@ A ruby gem that allows you to scan for beacon advertisements using CoreBluetooth
 ```
 gem install scan_beacon
 ```
+[Tips for installing & using on Ubuntu](https://github.com/RadiusNetworks/scanbeacon-gem/wiki/ubuntu)
 
 ## Create your scanner
 ``` ruby
@@ -89,4 +90,3 @@ advertiser.stop
 To scan for beacons, you must have a Linux machine with BlueZ installed, or a Mac, or a BLE112 device plugged in to a USB port (on Mac or Linux).
 
 To advertise as a beacon, you must have a Linux machine with BlueZ installed.
-
