@@ -57,7 +57,10 @@ module ScanBeacon
 
     def random_addr
       data = @initial_addr + Time.now.to_s
-      Digest::SHA256.digest(data)[0..5].unpack("H2:H2:H2:H2:H2:H2").join(":")
+      new_addr = Digest::SHA256.digest(data)[0..5]
+      # the most significant bit must not be set!
+      new_addr[0] = [(new_addr[0].unpack("C")[0] & 0x7F)].pack("C")
+      new_addr.unpack("H2:H2:H2:H2:H2:H2").join(":")
     end
 
   end
