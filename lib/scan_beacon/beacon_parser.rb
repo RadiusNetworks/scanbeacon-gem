@@ -89,7 +89,7 @@ module ScanBeacon
     end
 
     def parse_mfg_or_service_id(data)
-      data[0..1].unpack('S>')[0]
+      data[0..1].unpack('S<')[0]
     end
 
     def parse_power(data)
