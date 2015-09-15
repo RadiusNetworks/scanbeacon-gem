@@ -14,13 +14,15 @@ VALUE method_scan();
 VALUE method_new_adverts();
 VALUE new_scan_hash(NSString* device, NSData *data, NSNumber *rssi, NSData *service_uuid);
 
-@interface BLEDelegate : NSObject <CBCentralManagerDelegate>
+@interface BLEDelegate : NSObject <CBCentralManagerDelegate> {
+  @private
+  NSMutableArray *_scans;
+}
 - (NSArray *)scans;
 @end
 
-@implementation BLEDelegate {
-  NSMutableArray *_scans;
-}
+
+@implementation BLEDelegate
 
 - (id)init
 {
