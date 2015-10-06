@@ -89,6 +89,8 @@ module ScanBeacon
         end
       end
 
+      alias :eql? :==
+
       def hash
         @data.hash
       end
