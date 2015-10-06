@@ -12,6 +12,7 @@ module ScanBeacon
     BG_RESET = 0
     BG_DISCONNECT = 0
     BG_SET_MODE = 1
+    BG_GET_ADDRESS = 2
     BG_GAP_SET_PRIVACY_FLAGS = 0
     BG_GAP_SET_ADV_PARAM = 8
     BG_GAP_SET_ADV_DATA = 9
@@ -26,23 +27,38 @@ module ScanBeacon
     BG_GAP_USER_DATA = 4
     BG_GAP_CONNECTABLE = 2
 
+    def self.find_all
+      devices = Dir.glob("/dev/{cu.usbmodem,ttyACM}*")
+      devices.select {|device_path|
+        device = self.new(device_path)
+        device.open{ device.get_addr } != nil
+      }
+    end
+
     def initialize(port=nil)
-      @port = port || Dir.glob("/dev/{cu.usbmodem,ttyACM}*")[0]
+      @port = port || BLE112Device.find_all.first
     end
 
     def open
+      response = nil
       configure_port
       File.open(@port, 'r+b') do |file|
         @file = file
-        yield self
+        response = yield(self)
       end
       @file = nil
+      return response
     end
 
     def configure_port
       if RUBY_PLATFORM =~ /linux/
         system("stty -F #{@port} 115200 raw -brkint -icrnl -imaxbel -opost -isig -icanon -iexten -echo -echoe -echok -echoctl -echoke")
       end
+    end
+
+    def get_addr
+      response = bg_command(@file, BG_MSG_CLASS_SYSTEM, BG_GET_ADDRESS)
+      response[4..-1].reverse.unpack("H2:H2:H2:H2:H2:H2").join(":") if response.length == 10
     end
 
     def start_scan
