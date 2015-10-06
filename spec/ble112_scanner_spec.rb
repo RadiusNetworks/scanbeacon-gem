@@ -12,6 +12,7 @@ RSpec.describe ScanBeacon::BLE112Scanner do
     allow_any_instance_of(ScanBeacon::BLE112Device).to receive(:start_scan)
     allow_any_instance_of(ScanBeacon::BLE112Device).to receive(:stop_scan)
     allow_any_instance_of(ScanBeacon::BLE112Device).to receive(:read).and_return(response)
+    allow_any_instance_of(ScanBeacon::BLE112Device).to receive(:get_addr).and_return("00:11:22:33:44:55")
   end
 
   it "can scan for altbeacons" do
