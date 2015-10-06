@@ -1,5 +1,5 @@
 module ScanBeacon
-  class InterleavedAdvertiser
+  class InterleavedAdvertiser < GenericAdvertiser
     attr_accessor :beacons, :parsers, :advertiser
     # We will cycle through each beacon sequentially over the course of the time below
     INTERLEAVE_CYCLE_MILLIS = 1000
@@ -30,6 +30,7 @@ module ScanBeacon
         @stop_requested = true
         @thread.join
         @thread = nil      
+        advertiser.stop
       end
     end
 
@@ -43,7 +44,6 @@ module ScanBeacon
             advertiser.stop
             break if @stop_requested
             advertiser.beacon = beacon
-            puts "**** starting advertising with parser #{parsers[index]} and beacon #{beacon}"
             advertiser.parser = parsers[index]
             advertiser.start
             sleep sleep_time        

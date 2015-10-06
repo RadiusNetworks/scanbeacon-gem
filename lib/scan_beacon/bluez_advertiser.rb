@@ -1,42 +1,16 @@
 module ScanBeacon
-  class BlueZAdvertiser
+  class BlueZAdvertiser < GenericAdvertiser
  
-    attr_accessor :beacon, :parser, :ad, :addr
+    attr_accessor :addr
 
     def initialize(opts = {})
+      super()
       @device_id = opts[:device_id] || BlueZ.devices.map {|d| d[:device_id]}[0]
-      raise "No available devices" if @device_id.nil?
-      BlueZ.device_up @device_id
-      @addr = @initial_addr = BlueZ.devices.find {|d| d[:device_id] == @device_id}[:addr]
-      self.beacon = opts[:beacon]
-      self.parser = opts[:parser]
-      if beacon
-        self.parser ||= BeaconParser.default_parsers.find {|parser| parser.beacon_type == beacon.beacon_types.first}
-      end
     end
 
-    def beacon=(value)
-      @beacon = value
-      update_ad
-    end
-
-    def parser=(value)
-      @parser = value
-      update_ad
-    end
-
-    def ad=(value)
-      @ad = value
-      BlueZ.set_advertisement_bytes @device_id, @ad
-    end
-
-    def start
+    def start(with_rotation = false)
+      addr = random_addr if with_rotation
       BlueZ.start_advertising @device_id, nil
-    end
-
-    def start_with_random_addr
-      addr = random_addr
-      BlueZ.start_advertising @device_id, addr
     end
 
     def stop
@@ -49,6 +23,7 @@ module ScanBeacon
 
     def update_ad
       self.ad = @parser.generate_ad(@beacon) if @parser && @beacon
+      self.start if @advertising
     end
 
     def rotate_addr_and_update_ad
