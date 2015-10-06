@@ -19,7 +19,7 @@ module ScanBeacon
       raise "You must supply the same number of beacons (#{beacons.count}) and parsers (#{parsers.count})" if beacons.count != parsers.count
     end
 
-    def start
+    def starts
       if beacons.size > 0
         start_interleaving_thread
       end
@@ -38,14 +38,16 @@ module ScanBeacon
       sleep_time = 1000.0/INTERLEAVE_CYCLE_MILLIS/beacons.size
       @stop_requested = false
       @thread = Thread.new do
-        beacons.each_with_index do |beacon, index|
-          advertiser.stop
-          break if @stop_requested
-          advertiser.beacon = beacon
-          puts "**** starting advertising with parser #{parsers[index]} and beacon #{beacon}"
-          advertiser.parser = parsers[index]
-          advertiser.start
-          sleep sleep_time        
+        while !@stop_requested do
+          beacons.each_with_index do |beacon, index|
+            advertiser.stop
+            break if @stop_requested
+            advertiser.beacon = beacon
+            puts "**** starting advertising with parser #{parsers[index]} and beacon #{beacon}"
+            advertiser.parser = parsers[index]
+            advertiser.start
+            sleep sleep_time        
+          end
         end
       end
     end    

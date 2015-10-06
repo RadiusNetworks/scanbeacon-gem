@@ -10,7 +10,9 @@ module ScanBeacon
       @addr = @initial_addr = BlueZ.devices.find {|d| d[:device_id] == @device_id}[:addr]
       self.beacon = opts[:beacon]
       self.parser = opts[:parser]
-      self.parser ||= BeaconParser.default_parsers.find {|parser| parser.beacon_type == beacon.beacon_types.first}
+      if beacon
+        self.parser ||= BeaconParser.default_parsers.find {|parser| parser.beacon_type == beacon.beacon_types.first}
+      end
     end
 
     def beacon=(value)
