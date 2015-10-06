@@ -7,7 +7,9 @@ module ScanBeacon
       @device = BLE112Device.new opts[:port]
       self.beacon = opts[:beacon]
       self.parser = opts[:parser]
-      self.parser ||= BeaconParser.default_parsers.find {|parser| parser.beacon_type == beacon.beacon_types.first}
+      if beacon
+        self.parser ||= BeaconParser.default_parsers.find {|parser| parser.beacon_type == beacon.beacon_types.first}
+      end
       @advertising = false
     end
 
