@@ -19,7 +19,7 @@ module ScanBeacon
       raise "You must supply the same number of beacons (#{beacons.count}) and parsers (#{parsers.count})" if beacons.count != parsers.count
     end
 
-    def starts
+    def start
       if beacons.size > 0
         start_interleaving_thread
       end
