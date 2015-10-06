@@ -88,6 +88,10 @@ module ScanBeacon
           self.value <=> other
         end
       end
+
+      def hash
+        @data.hash
+      end
     end
   end
 end
