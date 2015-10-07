@@ -34,6 +34,10 @@ module ScanBeacon
       end
     end
 
+    def inspect
+      "<InterleavedAdvertiser beacons=#{@beacons.inspect}>"
+    end
+
   private
     def start_interleaving_thread
       sleep_time = 1000.0/INTERLEAVE_CYCLE_MILLIS/beacons.size

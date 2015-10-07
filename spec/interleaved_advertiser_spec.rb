@@ -27,6 +27,12 @@ RSpec.describe ScanBeacon::InterleavedAdvertiser do
     sleep 0.1
     advertiser.stop
   end
+
+  it "returns beacon list with inspect" do
+    base_advertiser = ScanBeacon::BLE112Advertiser.new
+    advertiser = ScanBeacon::InterleavedAdvertiser.new(advertiser: base_advertiser, beacons:[beacon, beacon])
+    expect(advertiser.inspect).to eq("<InterleavedAdvertiser beacons=[<Beacon ids=2F234454CF6D4A0FADF2F4911BA9FFA6,2,3 rssi=NaN, scans=0, power=-74, type=\"altbeacon\">, <Beacon ids=2F234454CF6D4A0FADF2F4911BA9FFA6,2,3 rssi=NaN, scans=0, power=-74, type=\"altbeacon\">]>")
+  end
   
   it "allows you to interleave two custom format beacons" do
     beacon1 = ScanBeacon::Beacon.new(
@@ -43,6 +49,8 @@ RSpec.describe ScanBeacon::InterleavedAdvertiser do
     parser2 = ScanBeacon::BeaconParser.new :custom2, "m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"
     
     base_advertiser = ScanBeacon::BLE112Advertiser.new
+    #base_advertiser = ScanBeacon::BlueZAdvertiser.new
+
     advertiser = ScanBeacon::InterleavedAdvertiser.new(
         advertiser: base_advertiser, 
         beacons:[beacon1, beacon2],
