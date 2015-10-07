@@ -20,7 +20,7 @@ module ScanBeacon
       self.ad = @parser.generate_ad(@beacon) if @parser && @beacon
       self.start if @advertising
     end
-
+    
     def ad=(value)
       @ad = value
     end

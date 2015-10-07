@@ -7,17 +7,19 @@ module ScanBeacon
       @device_id = opts[:device_id] || BlueZ.devices.map {|d| d[:device_id]}[0]
       raise "No available devices" if @device_id.nil?
       BlueZ.device_up @device_id
-      @addr = @initial_addr = BlueZ.devices.find {|d| d[:device_id] == @device_id}[:addr]
+      addr = @initial_addr = BlueZ.devices.find {|d| d[:device_id] == @device_id}[:addr]
       super(opts)
     end
 
     def start(with_rotation = false)
       addr = random_addr if with_rotation
       BlueZ.start_advertising @device_id, nil
+      @advertising = true
     end
 
     def stop
       BlueZ.stop_advertising @device_id
+      @advertising = false
     end
 
     def inspect
@@ -28,6 +30,11 @@ module ScanBeacon
       self.update_ad
       self.stop
       self.start_with_random_addr
+    end
+
+    def ad=(value)
+      super(value)
+      BlueZ.set_advertisement_bytes @device_id, @ad
     end
 
     def random_addr
