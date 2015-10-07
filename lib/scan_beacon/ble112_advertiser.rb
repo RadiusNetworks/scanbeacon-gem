@@ -2,8 +2,8 @@ module ScanBeacon
   class BLE112Advertiser < GenericIndividualAdvertiser
 
     def initialize(opts = {})
-      super()
       @device = BLE112Device.new opts[:port]
+      super()
     end
 
     def start(with_rotation = false)
