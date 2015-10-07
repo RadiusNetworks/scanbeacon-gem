@@ -1,18 +1,9 @@
 module ScanBeacon
-  class BLE112Advertiser < GenericAdvertiser
+  class BLE112Advertiser < GenericIndividualAdvertiser
 
     def initialize(opts = {})
       super()
       @device = BLE112Device.new opts[:port]
-    end
-
-    def update_ad    
-      self.ad = @parser.generate_ad(@beacon) if @parser && @beacon
-      self.start if @advertising
-    end
-
-    def ad=(value)
-      @ad = value
     end
 
     def start(with_rotation = false)
@@ -31,11 +22,6 @@ module ScanBeacon
 
     def inspect
       "<BLE112Advertiser ad=#{@ad.inspect}>"
-    end
-
-    def update_ad
-      self.ad = @parser.generate_ad(@beacon) if @parser && @beacon
-      self.start if @advertising
     end
 
     def rotate_addr

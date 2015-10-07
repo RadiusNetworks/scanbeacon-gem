@@ -6,6 +6,7 @@ require "scan_beacon/generic_scanner"
 require "scan_beacon/ble112_device"
 require "scan_beacon/ble112_scanner"
 require "scan_beacon/generic_advertiser"
+require "scan_beacon/generic_individual_advertiser"
 require "scan_beacon/interleaved_advertiser"
 require "scan_beacon/ble112_advertiser"
 case RUBY_PLATFORM

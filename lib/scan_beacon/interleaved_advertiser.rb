@@ -5,6 +5,7 @@ module ScanBeacon
     INTERLEAVE_CYCLE_MILLIS = 1000
     
     def initialize(opts = {})
+      super(opts)
       self.advertiser = opts[:advertiser]
       raise "No available advertiser" if advertiser.nil?
       self.beacons = opts[:beacons]

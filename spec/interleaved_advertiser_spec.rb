@@ -48,8 +48,11 @@ RSpec.describe ScanBeacon::InterleavedAdvertiser do
     parser1 = ScanBeacon::BeaconParser.new :custom1, "m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"
     parser2 = ScanBeacon::BeaconParser.new :custom2, "m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"
     
-    base_advertiser = ScanBeacon::BLE112Advertiser.new
-    #base_advertiser = ScanBeacon::BlueZAdvertiser.new
+    begin
+      base_advertiser = ScanBeacon::BlueZAdvertiser.new
+    rescue # above fails on a mac
+      base_advertiser = ScanBeacon::BLE112Advertiser.new
+    end
 
     advertiser = ScanBeacon::InterleavedAdvertiser.new(
         advertiser: base_advertiser, 

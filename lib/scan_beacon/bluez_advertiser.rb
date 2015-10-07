@@ -1,10 +1,10 @@
 module ScanBeacon
-  class BlueZAdvertiser < GenericAdvertiser
+  class BlueZAdvertiser < GenericIndividualAdvertiser
  
     attr_accessor :addr
 
     def initialize(opts = {})
-      super()
+      super(opts)
       @device_id = opts[:device_id] || BlueZ.devices.map {|d| d[:device_id]}[0]
     end
 
@@ -19,11 +19,6 @@ module ScanBeacon
 
     def inspect
       "<BlueZAdvertiser ad=#{@ad.inspect}>"
-    end
-
-    def update_ad
-      self.ad = @parser.generate_ad(@beacon) if @parser && @beacon
-      self.start if @advertising
     end
 
     def rotate_addr_and_update_ad
