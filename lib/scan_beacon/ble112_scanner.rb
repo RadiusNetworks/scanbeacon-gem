@@ -1,9 +1,12 @@
 module ScanBeacon
   class BLE112Scanner < GenericScanner
 
+    attr_reader :device_addr
+
     def initialize(opts = {})
       super
       @device = BLE112Device.new opts[:port]
+      @device_addr = @device.open{ @device.get_addr }
     end
 
     def each_advertisement
