@@ -50,7 +50,8 @@ module ScanBeacon
         ads = []
         beacons.each_with_index do |beacon, index|
           parser = parsers[index]
-          ads << parser.generate_ad(beacon)
+          ad = parser.generate_ad(beacon)
+          ads << ad
         end
         
         while !@stop_requested do

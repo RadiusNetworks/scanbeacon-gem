@@ -13,17 +13,14 @@ module ScanBeacon
 
     def start(with_rotation = false)
       addr = random_addr if with_rotation
-      if advertising
-        BlueZ.set_advertisement_bytes @device_id, @ad
-      else
-        BlueZ.start_advertising @device_id, @ad
-        @advertising = true
-      end
+      BlueZ.set_advertisement_bytes @device_id, @ad
+      BlueZ.start_advertising @device_id, addr if !advertising
+      @advertising=true
     end
 
     def stop
       BlueZ.stop_advertising @device_id
-      @advertising = false
+      @advertising=false
     end
 
     def inspect
