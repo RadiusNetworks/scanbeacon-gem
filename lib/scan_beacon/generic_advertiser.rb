@@ -1,6 +1,7 @@
 module ScanBeacon
   class GenericAdvertiser
     attr_accessor :beacon, :parser, :ad
+    attr_reader :advertising
 
     def initialize(opts = {})
       self.beacon = opts[:beacon]
