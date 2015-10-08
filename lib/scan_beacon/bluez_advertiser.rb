@@ -1,7 +1,7 @@
 module ScanBeacon
   class BlueZAdvertiser < GenericIndividualAdvertiser
  
-    attr_accessor :addr
+    attr_reader :addr
 
     def initialize(opts = {})
       @device_id = opts[:device_id] || BlueZ.devices.map {|d| d[:device_id]}[0]
@@ -13,8 +13,12 @@ module ScanBeacon
 
     def start(with_rotation = false)
       addr = random_addr if with_rotation
-      BlueZ.start_advertising @device_id, nil
-      @advertising = true
+      if advertising
+        BlueZ.set_advertisement_bytes @device_id, @ad
+      else
+        BlueZ.start_advertising @device_id, @ad
+        @advertising = true
+      end
     end
 
     def stop
@@ -30,11 +34,6 @@ module ScanBeacon
       self.update_ad
       self.stop
       self.start_with_random_addr
-    end
-
-    def ad=(value)
-      super(value)
-      BlueZ.set_advertisement_bytes @device_id, @ad
     end
 
     def random_addr
