@@ -12,11 +12,17 @@ module ScanBeacon
     end
 
     def start(with_rotation = false)
-      addr = random_addr if with_rotation
       BlueZ.set_advertisement_bytes @device_id, @ad
       # You must call start advertising any time you change the advertisement bytes
       # otherwise they won't take
-      BlueZ.start_advertising @device_id, addr
+      if with_rotation
+        @addr = random_addr 
+        BlueZ.start_advertising @device_id, addr
+      else
+        # have to pass nil for addr if we don't want to override it and use the internal
+        BlueZ.start_advertising @device_id, nil
+      end
+    
       @advertising=true
     end
 
