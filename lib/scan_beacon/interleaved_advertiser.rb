@@ -55,7 +55,7 @@ module ScanBeacon
         
         while !@stop_requested do
           ads.each do |ad|
-            advertiser.ad = ad
+            advertiser.ad=ad
             advertiser.start if !advertiser.advertising
             sleep sleep_time        
             break if @stop_requested
