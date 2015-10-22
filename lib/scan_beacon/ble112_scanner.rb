@@ -16,16 +16,23 @@ module ScanBeacon
           keep_scanning = true
           while keep_scanning do
             response = device.read
-            if response.advertisement?
+            if response && response.advertisement?
               if response.manufacturer_ad?
                 keep_scanning = false if yield(response.advertisement_data, response.mac, response.rssi) == false
               else
                 keep_scanning = false if yield(response.advertisement_data[4..-1], response.mac, response.rssi, 0x03) == false
               end
+            else
+              keep_scanning = false if yield(nil, nil, nil) == false
             end
           end
         ensure
-          device.stop_scan
+          begin
+            device.stop_scan
+          rescue StandardError
+            # don't crash trying to stop scan - it may be that the device was
+            # unplugged
+          end
         end
       end
     end

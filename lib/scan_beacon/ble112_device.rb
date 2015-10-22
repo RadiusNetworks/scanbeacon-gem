@@ -57,7 +57,9 @@ module ScanBeacon
     end
 
     def get_addr
-      response = bg_command(@file, BG_MSG_CLASS_SYSTEM, BG_GET_ADDRESS)
+      # use a timeout here because we're using this to detect BLE112s and if it
+      # isn't one, it may not respond right away
+      response = bg_command(@file, BG_MSG_CLASS_SYSTEM, BG_GET_ADDRESS,nil,nil,0.2)
       response[4..-1].reverse.unpack("H2:H2:H2:H2:H2:H2").join(":") if response.length == 10
     end
 
@@ -112,7 +114,9 @@ module ScanBeacon
     end
 
     def read
-      BLE112Response.new( bg_read(@file) )
+      data = bg_read(@file, 0.2)
+      return nil if data.nil?
+      BLE112Response.new( data )
     end
 
     def reset
@@ -126,6 +130,7 @@ module ScanBeacon
 
     class BLE112Response
       def initialize(data)
+        data ||= ""
         @data = data.force_encoding("ASCII-8BIT")
       end
 
@@ -172,7 +177,7 @@ module ScanBeacon
 
     private
 
-      def bg_command(port, msg_class, msg, data=nil, data_format=nil)
+      def bg_command(port, msg_class, msg, data=nil, data_format=nil, timeout=nil)
         data = [data].compact unless data.is_a? Array
         if data_format.nil?
           data = data.pack('C*')
@@ -181,10 +186,13 @@ module ScanBeacon
         end
         cmd = [0, data.size, msg_class, msg].flatten.pack('C*') + data
         port.write(cmd)
-        bg_read(port)
+        bg_read(port, timeout)
       end
 
-      def bg_read(port)
+      def bg_read(port, timeout = nil)
+        if !timeout.nil?
+          return nil if IO.select([port],nil,nil, timeout).nil?
+        end
         response = port.read(1) while response.nil? || ![0x00, 0x80].include?(response.unpack('C')[0])
         response << port.read(3)
         payload_length = response[1].unpack('C')[0]
