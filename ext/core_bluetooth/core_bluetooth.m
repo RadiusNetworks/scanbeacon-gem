@@ -3,6 +3,7 @@
 // Include the Ruby headers and goodies
 #include "ruby.h"
 #import <Foundation/Foundation.h>
+#import <IOBluetooth/IOBluetooth.h>
 #import <CoreBluetooth/CoreBluetooth.h>
 
 // Defining a space for information and references about the module to be stored internally
@@ -13,6 +14,10 @@ void Init_core_bluetooth();
 VALUE method_scan();
 VALUE method_new_adverts();
 VALUE new_scan_hash(NSString* device, NSData *data, NSNumber *rssi, NSData *service_uuid);
+
+VALUE method_set_advertisement_data(VALUE klass, VALUE data);
+VALUE method_start_advertising();
+VALUE method_stop_advertising();
 
 @interface BLEDelegate : NSObject <CBCentralManagerDelegate> {
   @private
@@ -82,6 +87,13 @@ VALUE sym_service_uuid = Qnil;
 BLEDelegate *bleDelegate;
 CBCentralManager *centralManager;
 
+// define some hidden methods so we can call them more easily
+@interface IOBluetoothHostController ()
+- (int)BluetoothHCILESetAdvertiseEnable:(unsigned char)arg1;
+- (int)BluetoothHCILESetAdvertisingData:(unsigned char)arg1 advertsingData:(char *)arg2;
+- (int)BluetoothHCILESetAdvertisingParameters:(unsigned short)arg1 advertisingIntervalMax:(unsigned short)arg2 advertisingType:(unsigned char)arg3 ownAddressType:(unsigned char)arg4 directAddressType:(unsigned char)arg5 directAddress:(struct BluetoothDeviceAddress { unsigned char x1[6]; }*)arg6 advertisingChannelMap:(unsigned char)arg7 advertisingFilterPolicy:(unsigned char)arg8;
+@end
+
 // initialize our module here
 void Init_core_bluetooth()
 {
@@ -89,6 +101,10 @@ void Init_core_bluetooth()
   cb_module = rb_define_module_under(scan_beacon_module, "CoreBluetooth");
   rb_define_singleton_method(cb_module, "scan", method_scan, 0);
   rb_define_singleton_method(cb_module, "new_adverts", method_new_adverts, 0);
+
+  rb_define_singleton_method(cb_module, "set_advertisement_data", method_set_advertisement_data, 1);
+  rb_define_singleton_method(cb_module, "start_advertising", method_start_advertising, 0);
+  rb_define_singleton_method(cb_module, "stop_advertising", method_stop_advertising, 0);
 
   sym_device = ID2SYM(rb_intern("device"));
   sym_data = ID2SYM(rb_intern("data"));
@@ -146,6 +162,39 @@ VALUE method_scan()
       [centralManager stopScan];
     }
   }
+  return Qnil;
+}
+
+VALUE method_set_advertisement_data(VALUE klass, VALUE data)
+{
+  IOBluetoothHostController *device = [IOBluetoothHostController defaultController];
+  char flags_and_data[40];
+  memcpy(flags_and_data, "\x02\x01\x1A", 3);
+  memcpy(flags_and_data+3, RSTRING_PTR(data), RSTRING_LEN(data));
+  // NOTE: Mac OS X has a typo in the method definition.  This may get fixed in the future.
+  [device BluetoothHCILESetAdvertisingData: RSTRING_LEN(data)+3 advertsingData: flags_and_data];
+  return Qnil;
+}
+
+VALUE method_start_advertising()
+{
+  IOBluetoothHostController *device = [IOBluetoothHostController defaultController];
+  [device BluetoothHCILESetAdvertisingParameters: 0x00A0
+                          advertisingIntervalMax: 0x00A0 // 100ms
+                                 advertisingType: 0x03
+                                  ownAddressType: 0x00
+                               directAddressType: 0x00
+                                   directAddress: (void*)"\x00\x00\x00\x00\x00\x00"
+                                   advertisingChannelMap: 0x07 // all 3 channels
+                                 advertisingFilterPolicy: 0x00];
+  [device BluetoothHCILESetAdvertiseEnable: 1];
+  return Qnil;
+}
+
+VALUE method_stop_advertising()
+{
+  IOBluetoothHostController *device = [IOBluetoothHostController defaultController];
+  [device BluetoothHCILESetAdvertiseEnable: 0];
   return Qnil;
 }
 

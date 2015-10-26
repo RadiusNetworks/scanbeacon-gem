@@ -10,6 +10,7 @@ dir_config(extension_name)
 if RUBY_PLATFORM =~ /darwin/
   $DLDFLAGS << " -framework Foundation"
   $DLDFLAGS << " -framework CoreBluetooth"
+  $DLDFLAGS << " -framework IOBluetooth"
 else
   # don't compile the code on non-mac platforms because
   # CoreBluetooth wont be there, and we may not even have

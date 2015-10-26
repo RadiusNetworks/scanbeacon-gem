@@ -12,6 +12,7 @@ case RUBY_PLATFORM
 when /darwin/
   require "scan_beacon/core_bluetooth"
   require "scan_beacon/core_bluetooth_scanner"
+  require "scan_beacon/core_bluetooth_advertiser"
 when /linux/
   require "scan_beacon/bluez"
   require "scan_beacon/bluez_scanner"
