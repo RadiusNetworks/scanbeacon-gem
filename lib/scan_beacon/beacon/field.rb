@@ -28,6 +28,7 @@ module ScanBeacon
         elsif hex
           # zero pad hex if needed
           hex = "0"*(length*2-hex.size) + hex if length and hex.size < length*2
+          hex.gsub!("-","")
           @data = [hex].pack("H*")
         elsif number
           raise ArgumentError.new("Must also give a field length when you give a number") if length.nil?
