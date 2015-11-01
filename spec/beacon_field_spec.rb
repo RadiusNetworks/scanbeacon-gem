@@ -39,6 +39,11 @@ module ScanBeacon
       expect( id.to_hex ).to eq "2710"
     end
 
+    it "can be initialized with a uuid with dashes" do
+      id = Beacon::Field.new hex: "2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6"
+      expect(id.to_hex ).to eq "2f234454cf6d4a0fadf2f4911ba9ffa6"
+    end
+
     it "can tell if it equals another BeaconId" do
       id1 = Beacon::Field.new(number: 10000, length: 2)
       id2 = Beacon::Field.new(number: 10000, length: 2)
