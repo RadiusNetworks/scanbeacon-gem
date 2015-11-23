@@ -60,7 +60,7 @@ module ScanBeacon
       # use a timeout here because we're using this to detect BLE112s and if it
       # isn't one, it may not respond right away
       response = bg_command(@file, BG_MSG_CLASS_SYSTEM, BG_GET_ADDRESS,nil,nil,0.2)
-      response[4..-1].reverse.unpack("H2:H2:H2:H2:H2:H2").join(":") if response.length == 10
+      response[4..-1].reverse.unpack("H2:H2:H2:H2:H2:H2").join(":") if response && response.length == 10
     end
 
     def start_scan
