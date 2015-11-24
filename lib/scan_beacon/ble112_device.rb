@@ -28,6 +28,12 @@ module ScanBeacon
     BG_GAP_CONNECTABLE = 2
 
     def self.find_all
+      # try to reset all the possible devices
+      devices = Dir.glob("/dev/{cu.usbmodem,ttyACM}*")
+      devices.map {|device_path|
+        Thread.new { self.new(device_path).reset }
+      }.each(&:join)
+      # reset causes devices to reattach, possibly at different path
       devices = Dir.glob("/dev/{cu.usbmodem,ttyACM}*")
       devices.select {|device_path|
         device = self.new(device_path)
