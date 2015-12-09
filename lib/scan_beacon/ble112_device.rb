@@ -28,14 +28,8 @@ module ScanBeacon
     BG_GAP_CONNECTABLE = 2
 
     def self.find_all
-      # try to reset all the possible devices
-      devices = Dir.glob("/dev/{cu.usbmodem,ttyACM}*")
-      devices.map {|device_path|
-        Thread.new { self.new(device_path).reset }
-      }.each(&:join)
-      # reset causes devices to reattach, possibly at different path
-      devices = Dir.glob("/dev/{cu.usbmodem,ttyACM}*")
-      devices.select {|device_path|
+      self.reset_all
+      possible_devices.select {|device_path|
         device = self.new(device_path)
         device.open{ device.get_addr } != nil
       }
@@ -132,6 +126,38 @@ module ScanBeacon
       # give time for the device to reboot.
       # TODO: figure out a way that doesn't involve sleeping arbitrarily.
       sleep 1
+    end
+
+    def self.possible_devices
+      Dir.glob("/dev/{cu.usbmodem,ttyACM}*")
+    end
+
+    def self.reset_all
+      # try to reset all the devices
+      device_count = possible_devices.count
+      possible_devices.each do |device_path|
+        File.open(device_path, 'r+b') do |file|
+          file.write([BG_COMMAND, 1, BG_MSG_CLASS_SYSTEM, BG_RESET, 0].pack('C*'))
+        end
+      end
+
+      # wait for them to show up again, but only wait for up to 5 secs
+      sleep 0.1
+      wait_count = 0
+      while possible_devices.count < device_count && wait_count < 50
+        sleep 0.1
+        wait_count += 1
+      end
+
+      # try to open them - if we get a busy, wait and try again
+      possible_devices.each do |device_path|
+        begin
+          File.open(device_path, 'r+b') {|f| f.close }
+        rescue Errno::EBUSY
+          sleep 0.1
+          retry
+        end
+      end
     end
 
     class BLE112Response
