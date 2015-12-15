@@ -27,4 +27,10 @@ RSpec.describe ScanBeacon::BLE112Scanner do
     scanner.scan
     expect( scanner.beacons[0].uuid ).to eq("2CBC261B-4A07-4278-A513-8BF3F8012374")
   end
+
+  it "can be initialized with an array of parsers" do
+    foo_parser = ScanBeacon::BeaconParser.new(:foo, "m:2-3=f000,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25")
+    scanner = ScanBeacon::BLE112Scanner.new({parsers: [foo_parser]}.merge(scanner_opts))
+    expect( scanner.parsers ).to eq([foo_parser])
+  end
 end

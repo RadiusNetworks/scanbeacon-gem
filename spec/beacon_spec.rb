@@ -3,7 +3,7 @@ require 'scan_beacon'
 
 RSpec.describe ScanBeacon::Beacon do
   let(:beacon) {
-    beacon = ScanBeacon::Beacon.new(
+    ScanBeacon::Beacon.new(
       ids: ["2F234454CF6D4A0FADF2F4911BA9FFA6",2,3],
       power: -74,
       beacon_type: :mybeacon
