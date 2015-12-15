@@ -1,11 +1,11 @@
 module ScanBeacon
   class GenericScanner
 
-    attr_reader :beacons
+    attr_reader :beacons, :parsers
 
     def initialize(opts = {})
       @cycle_seconds = opts[:cycle_seconds] || 1
-      @parsers = BeaconParser.default_parsers
+      @parsers = opts[:parsers] || BeaconParser.default_parsers
       @beacons = []
     end
 
