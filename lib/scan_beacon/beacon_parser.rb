@@ -94,7 +94,9 @@ module ScanBeacon
 
     def parse_power(data)
       return nil if @power.nil?
-      data[@power[:start]..@power[:end]].unpack('c')[0]
+      power_data = data[@power[:start]..@power[:end]]
+      return nil if power_data.nil?
+      power_data.unpack('c')[0]
     end
 
     def generate_ad(beacon)
