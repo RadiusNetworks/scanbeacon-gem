@@ -142,7 +142,7 @@ module ScanBeacon
       end
 
       # wait for them to show up again, but only wait for up to 5 secs
-      sleep 0.1
+      sleep 1
       wait_count = 0
       while possible_devices.count < device_count && wait_count < 50
         sleep 0.1
