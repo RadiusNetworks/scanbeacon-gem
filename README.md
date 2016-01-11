@@ -83,6 +83,16 @@ advertiser = ScanBeacon::BlueZAdvertiser.new(beacon: beacon)
 advertiser.start
 ...
 advertiser.stop
+
+# Eddystone URL (PhysicalWeb)
+beacon = ScanBeacon::EddystoneUrlBeacon.new(
+  url: "http://radiusnetworks.com",
+  power: -20,
+)
+advertiser = ScanBeacon::BlueZAdvertiser.new(beacon: beacon)
+advertiser.start
+...
+advertiser.stop
 ```
 
 
