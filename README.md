@@ -1,6 +1,6 @@
 # ScanBeacon gem
 
-A ruby gem that allows you to scan for beacon advertisements using CoreBluetooth (on Mac OS X) or a BlueGiga BLE112 device (on mac or linux)
+A ruby gem that allows you to scan for beacon advertisements using IOBluetooth (on Mac OS X) or a BlueGiga BLE112 device (on mac or linux)
 
 # Example Usage
 
@@ -13,12 +13,14 @@ gem install scan_beacon
 ## Create your scanner
 ``` ruby
 require 'scan_beacon'
+# to scan using the default device on mac or linux
+scanner = ScanBeacon::DefaultScanner.new
 # to scan using CoreBluetooth on a mac
 scanner = ScanBeacon::CoreBluetoothScanner.new
-# to scan using a BLE112 device
-scanner = ScanBeacon::BLE112Scanner.new
 # to scan using BlueZ on Linux (make sure you have privileges)
 scanner = ScanBeacon::BlueZScanner.new
+# to scan using a BLE112 device
+scanner = ScanBeacon::BLE112Scanner.new
 ```
 
 ## Start a scan, yield beacons in a loop
@@ -57,7 +59,7 @@ scanner.add_parser( ScanBeacon::BeaconParser.new(:mybeacon, "m:2-3=0000,i:4-19,i
 ...
 ```
 
-## Advertise as a beacon on Linux using BlueZ
+## Advertise as a beacon on Linux using BlueZ or a Mac using IOBluetooth
 Example:
 ``` ruby
 # altbeacon
@@ -67,7 +69,7 @@ beacon = ScanBeacon::Beacon.new(
   mfg_id: 0x0118,
   beacon_type: :altbeacon
 )
-advertiser = ScanBeacon::BlueZAdvertiser.new(beacon: beacon)
+advertiser = ScanBeacon::DefaultAdvertiser.new(beacon: beacon)
 advertiser.start
 ...
 advertiser.stop
@@ -79,7 +81,7 @@ beacon = ScanBeacon::Beacon.new(
   service_uuid: 0xFEAA,
   beacon_type: :eddystone_uid
 )
-advertiser = ScanBeacon::BlueZAdvertiser.new(beacon: beacon)
+advertiser = ScanBeacon::DefaultAdvertiser.new(beacon: beacon)
 advertiser.start
 ...
 advertiser.stop
@@ -89,7 +91,7 @@ beacon = ScanBeacon::EddystoneUrlBeacon.new(
   url: "http://radiusnetworks.com",
   power: -20,
 )
-advertiser = ScanBeacon::BlueZAdvertiser.new(beacon: beacon)
+advertiser = ScanBeacon::DefaultAdvertiser.new(beacon: beacon)
 advertiser.start
 ...
 advertiser.stop
@@ -97,6 +99,4 @@ advertiser.stop
 
 
 # Dependencies
-To scan for beacons, you must have a Linux machine with BlueZ installed, or a Mac, or a BLE112 device plugged in to a USB port (on Mac or Linux).
-
-To advertise as a beacon, you must have a Linux machine with BlueZ installed.
+To scan for beacons or advertise, you must have a Linux machine with BlueZ installed, or a Mac, or a BLE112 device plugged in to a USB port (on Mac or Linux).
