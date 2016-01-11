@@ -50,4 +50,5 @@ module ScanBeacon
     end
 
   end
+  DefaultAdvertiser = BlueZAdvertiser
 end

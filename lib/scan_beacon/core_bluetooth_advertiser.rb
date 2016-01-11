@@ -23,4 +23,5 @@ module ScanBeacon
     end
 
   end
+  DefaultAdvertiser = CoreBluetoothAdvertiser
 end
