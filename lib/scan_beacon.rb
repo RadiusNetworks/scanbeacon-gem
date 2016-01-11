@@ -1,5 +1,6 @@
 require "scan_beacon/version"
 require "scan_beacon/beacon"
+require "scan_beacon/eddystone_url_beacon"
 require "scan_beacon/beacon/field"
 require "scan_beacon/beacon_parser"
 require "scan_beacon/generic_scanner"

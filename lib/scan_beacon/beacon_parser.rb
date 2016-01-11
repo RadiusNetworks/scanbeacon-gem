@@ -2,7 +2,8 @@ module ScanBeacon
   class BeaconParser
     DEFAULT_LAYOUTS = {
       altbeacon: "m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25",
-      eddystone_uid: "s:0-1=feaa,m:2-2=00,p:3-3:-41,i:4-13,i:14-19;d:20-21"
+      eddystone_uid: "s:0-1=feaa,m:2-2=00,p:3-3:-41,i:4-13,i:14-19;d:20-21",
+      eddystone_url: "s:0-1=feaa,m:2-2=10,p:3-3:-41,i:4-21v",
     }
     AD_TYPE_MFG = 0xff
     AD_TYPE_SERVICE = 0x03
@@ -36,6 +37,9 @@ module ScanBeacon
           end: range_end.to_i,
           length: range_end.to_i - range_start.to_i + 1,
         }
+        if range_end.end_with? 'v'
+          field_params[:var_length] = true
+        end
         field_params[:expected] = [expected].pack("H*") unless expected.nil?
         case field_type
         when 'm'
@@ -100,14 +104,19 @@ module ScanBeacon
     end
 
     def generate_ad(beacon)
-      length = [@matchers, @ids, @power, @data_fields].flatten.map {|elem| elem[:end] }.max + 1
+      length = [@matchers, @ids, @power, @data_fields].flatten.map {|elem| elem[:start] }.max + 1
       ad = ("\x00" * length).force_encoding("ASCII-8BIT")
       @matchers.each do |matcher|
         ad[matcher[:start]..matcher[:end]] = matcher[:expected]
       end
       @ids.each_with_index do |id, index|
-        id_bytes = Beacon::Field.field_with_length(beacon.ids[index], id[:length]).bytes
-        ad[id[:start]..id[:end]] = id_bytes
+        if id[:var_length]
+          id_bytes = Beacon::Field.new(hex: beacon.ids[index]).bytes
+          ad[id[:start]..id[:start]+id_bytes.size] = id_bytes
+        else
+          id_bytes = Beacon::Field.field_with_length(beacon.ids[index], id[:length]).bytes
+          ad[id[:start]..id[:end]] = id_bytes
+        end
       end
       @data_fields.each_with_index do |field, index|
         unless beacon.data[index].nil?
@@ -116,6 +125,7 @@ module ScanBeacon
         end
       end
       ad[@power[:start]..@power[:end]] = [beacon.power].pack('c')
+      length = ad.size
       if @ad_type == AD_TYPE_SERVICE
         "\x03\x03".force_encoding("ASCII-8BIT") + [beacon.service_uuid].pack("S<") + [length+1].pack('C') + BT_EIR_SERVICE_DATA + ad
       elsif @ad_type == AD_TYPE_MFG

@@ -3,7 +3,7 @@ require 'set'
 module ScanBeacon
   class Beacon
 
-    attr_accessor :mac, :ids, :power, :beacon_types, :data, :mfg_id, :service_uuid
+    attr_accessor :mac, :ids, :power, :beacon_types, :data, :mfg_id, :service_uuid, :rssis
 
     def initialize(opts={})
       @ids = opts[:ids] || []
@@ -12,7 +12,7 @@ module ScanBeacon
       @mfg_id = opts[:mfg_id]
       @service_uuid = opts[:service_uuid]
       @beacon_types = Set.new [opts[:beacon_type]]
-      @rssis = []
+      @rssis = opts[:rssis] || []
     end
 
     def ==(obj)

@@ -3,7 +3,7 @@ module ScanBeacon
 
     def initialize(opts = {})
       @device = BLE112Device.new opts[:port]
-      super()
+      super(opts)
     end
 
     def start(with_rotation = false)
