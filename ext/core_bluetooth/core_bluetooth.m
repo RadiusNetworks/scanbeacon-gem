@@ -19,6 +19,15 @@ VALUE method_set_advertisement_data(VALUE klass, VALUE data);
 VALUE method_start_advertising();
 VALUE method_stop_advertising();
 
+// define some hidden methods so we can call them more easily
+@interface IOBluetoothHostController ()
+- (int)BluetoothHCILESetAdvertiseEnable:(unsigned char)arg1;
+- (int)BluetoothHCILESetAdvertisingData:(unsigned char)arg1 advertsingData:(char *)arg2;
+- (int)BluetoothHCILESetAdvertisingParameters:(unsigned short)arg1 advertisingIntervalMax:(unsigned short)arg2 advertisingType:(unsigned char)arg3 ownAddressType:(unsigned char)arg4 directAddressType:(unsigned char)arg5 directAddress:(struct BluetoothDeviceAddress { unsigned char x1[6]; }*)arg6 advertisingChannelMap:(unsigned char)arg7 advertisingFilterPolicy:(unsigned char)arg8;
+- (int)BluetoothHCILESetScanParameters:(unsigned char)arg1 LEScanInterval:(unsigned short)arg2 LEScanWindow:(unsigned short)arg3 ownAddressType:(unsigned char)arg4 scanningFilterPolicy:(unsigned char)arg5;
+- (int)BluetoothHCILESetScanEnable:(unsigned char)arg1 filterDuplicates:(unsigned char)arg2;
+@end
+
 @interface BLEDelegate : NSObject <CBCentralManagerDelegate> {
   @private
   NSMutableArray *_scans;
@@ -66,6 +75,15 @@ VALUE method_stop_advertising();
 - (void)centralManagerDidUpdateState:(CBCentralManager *)central
 {
   [central scanForPeripheralsWithServices:nil options:@{CBCentralManagerScanOptionAllowDuplicatesKey : @(YES)}];
+
+  // set custom scan params to achieve better scanning performance
+  IOBluetoothHostController * device = IOBluetoothHostController.defaultController;
+  [device BluetoothHCILESetScanParameters:0x01
+                           LEScanInterval:200
+                             LEScanWindow:200
+                           ownAddressType:0x00
+                     scanningFilterPolicy:0x00];
+  [device BluetoothHCILESetScanEnable:0x01 filterDuplicates:0x00];
 }
 
 - (NSArray *) scans
@@ -86,13 +104,6 @@ VALUE sym_rssi = Qnil;
 VALUE sym_service_uuid = Qnil;
 BLEDelegate *bleDelegate;
 CBCentralManager *centralManager;
-
-// define some hidden methods so we can call them more easily
-@interface IOBluetoothHostController ()
-- (int)BluetoothHCILESetAdvertiseEnable:(unsigned char)arg1;
-- (int)BluetoothHCILESetAdvertisingData:(unsigned char)arg1 advertsingData:(char *)arg2;
-- (int)BluetoothHCILESetAdvertisingParameters:(unsigned short)arg1 advertisingIntervalMax:(unsigned short)arg2 advertisingType:(unsigned char)arg3 ownAddressType:(unsigned char)arg4 directAddressType:(unsigned char)arg5 directAddress:(struct BluetoothDeviceAddress { unsigned char x1[6]; }*)arg6 advertisingChannelMap:(unsigned char)arg7 advertisingFilterPolicy:(unsigned char)arg8;
-@end
 
 // initialize our module here
 void Init_core_bluetooth()
