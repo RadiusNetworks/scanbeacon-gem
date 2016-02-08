@@ -22,4 +22,5 @@ module ScanBeacon
     end
 
   end
+  DefaultScanner = CoreBluetoothScanner
 end
