@@ -137,26 +137,10 @@ module ScanBeacon
       device_count = possible_devices.count
       possible_devices.each do |device_path|
         File.open(device_path, 'r+b') do |file|
-          file.write([BG_COMMAND, 1, BG_MSG_CLASS_SYSTEM, BG_RESET, 0].pack('C*'))
+          file.write([BG_COMMAND, 0, BG_MSG_CLASS_GAP, BG_DISCOVER_STOP].pack('C*'))
         end
-      end
-
-      # wait for them to show up again, but only wait for up to 5 secs
-      sleep 1
-      wait_count = 0
-      while possible_devices.count < device_count && wait_count < 50
-        sleep 0.1
-        wait_count += 1
-      end
-
-      # try to open them - if we get a busy, wait and try again
-      possible_devices.each do |device_path|
-        begin
-          File.open(device_path, 'r+b') {|f| f.close }
-        rescue Errno::EBUSY
-          sleep 0.1
-          retry
-        end
+        # open and close the file to clear the buffer
+        File.open(device_path, 'r+b') {|file| }
       end
     end
 
