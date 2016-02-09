@@ -78,6 +78,17 @@ module ScanBeacon
         end
       end
 
+      def to_f
+        case @data.size
+        when 2
+          # 8:8 format
+          integer_part, decimal_part = @data.unpack("cC")
+          integer_part + (decimal_part / 256.0)
+        else
+          nil
+        end
+      end
+
       def to_hex
         @data.unpack("H*")[0]
       end
