@@ -54,5 +54,12 @@ module ScanBeacon
       id2 = Beacon::Field.new(number: 20000, length: 2)
       expect( id1 ).to_not eq( id2 )
     end
+
+    it "can interpret a two byte field as a 8:8 fixed point number" do
+      data = Beacon::Field.new(hex: "0240")
+      expect( data.to_f ).to eq(2.25)
+      data = Beacon::Field.new(hex: "fdc0")
+      expect( data.to_f ).to eq(-2.25)
+    end
   end
 end
