@@ -15,10 +15,10 @@ module ScanBeacon
       update_ad
     end
 
-    def update_ad    
+    def update_ad
       self.ad = @parser.generate_ad(@beacon) if @parser && @beacon
     end
-    
+
     def ad=(value)
       @ad = value
       self.start if advertising

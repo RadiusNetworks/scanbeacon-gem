@@ -10,12 +10,18 @@ module ScanBeacon
       CoreBluetooth.set_advertisement_data @ad
     end
 
-    def start
-      CoreBluetooth.start_advertising
+    def start(with_rotation = false)
+      CoreBluetooth.start_advertising(with_rotation)
     end
 
     def stop
       CoreBluetooth.stop_advertising
+    end
+
+    def rotate_addr_and_update_ad
+      self.update_ad
+      self.stop
+      self.start(true)
     end
 
     def inspect

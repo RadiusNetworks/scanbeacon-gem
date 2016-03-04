@@ -22,7 +22,6 @@ module ScanBeacon
         # have to pass nil for addr if we don't want to override it and use the internal
         BlueZ.start_advertising @device_id, nil
       end
-    
       @advertising=true
     end
 
@@ -38,7 +37,7 @@ module ScanBeacon
     def rotate_addr_and_update_ad
       self.update_ad
       self.stop
-      self.start_with_random_addr
+      self.start(true)
     end
 
     def random_addr
