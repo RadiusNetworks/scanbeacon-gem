@@ -1,6 +1,6 @@
 # ScanBeacon gem
 
-A ruby gem that allows you to scan for beacon advertisements using IOBluetooth (on Mac OS X) or a BlueGiga BLE112 device (on mac or linux)
+A ruby gem that allows you to scan for beacon advertisements using IOBluetooth (on Mac OS X), BlueZ (on Linux), or a BlueGiga BLE112 device (on mac or linux)
 
 # Example Usage
 
