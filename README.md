@@ -50,7 +50,7 @@ beacons = scanner.scan
 ```
 
 ## Add a custom beacon layout
-By default, this gem supports AltBeacon advertisements.  But you can add a beacon parser to support other major beacon formats as well.
+By default, this gem supports AltBeacon and Eddystone advertisements. But you can add a beacon parser to support other major beacon formats as well.
 
 Example:
 ``` ruby
