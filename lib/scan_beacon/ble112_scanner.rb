@@ -5,7 +5,7 @@ module ScanBeacon
 
     def initialize(opts = {})
       super
-      @device = BLE112Device.new opts[:port]
+      @device = opts[:device] || BLE112Device.new(opts[:port])
       @device_addr = @device.open{ @device.get_addr }
     end
 

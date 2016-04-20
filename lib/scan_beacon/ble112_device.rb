@@ -145,21 +145,22 @@ module ScanBeacon
     end
 
     class BLE112Response
+      attr_reader :data
+
       def initialize(data)
-        data ||= ""
-        @data = data.force_encoding("ASCII-8BIT")
+        @data = (data || "").force_encoding("ASCII-8BIT")
       end
 
       def size
-        @data.size
+        data.size
       end
 
       def event?
-        @data[0].unpack('C')[0] == BG_EVENT
+        data[0].unpack('C')[0] == BG_EVENT
       end
 
       def gap_scan?
-        @data[2..3].unpack('CC') == [BG_MSG_CLASS_GAP, 0]
+        data[2..3].unpack('CC') == [BG_MSG_CLASS_GAP, 0]
       end
 
       def manufacturer_ad?
@@ -175,19 +176,19 @@ module ScanBeacon
       end
 
       def advertisement_type
-        @data[19].unpack('C')[0]
+        data[19].unpack('C')[0]
       end
 
       def advertisement_data
-        @advertisement_data ||= @data[20..-1]
+        @advertisement_data ||= data[20..-1]
       end
 
       def mac
-        @data[6..11].unpack('H2 H2 H2 H2 H2 H2').join(":")
+        data[6..11].unpack('H2 H2 H2 H2 H2 H2').join(":")
       end
 
       def rssi
-        @data[4].unpack('c')[0]
+        data[4].unpack('c')[0]
       end
     end
 
