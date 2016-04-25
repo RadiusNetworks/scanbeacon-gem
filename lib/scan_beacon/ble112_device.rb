@@ -137,10 +137,10 @@ module ScanBeacon
       device_count = possible_devices.count
       possible_devices.each do |device_path|
         File.open(device_path, 'r+b') do |file|
-          file.write([BG_COMMAND, 0, BG_MSG_CLASS_GAP, BG_DISCOVER_STOP].pack('C*'))
+          bg_command(file, BG_MSG_CLASS_GAP, BG_DISCOVER_STOP, nil, nil, 0.5)
         end
         # open and close the file to clear the buffer
-        File.open(device_path, 'r+b') {|file| }
+        File.open(device_path, 'r+b') {|file| file.sync}
       end
     end
 
@@ -194,7 +194,7 @@ module ScanBeacon
 
     private
 
-      def bg_command(port, msg_class, msg, data=nil, data_format=nil, timeout=nil)
+      def self.bg_command(port, msg_class, msg, data=nil, data_format=nil, timeout=nil)
         data = [data].compact unless data.is_a? Array
         if data_format.nil?
           data = data.pack('C*')
@@ -206,7 +206,7 @@ module ScanBeacon
         bg_read(port, timeout)
       end
 
-      def bg_read(port, timeout = nil)
+      def self.bg_read(port, timeout = nil)
         if !timeout.nil?
           return nil if IO.select([port],nil,nil, timeout).nil?
         end
@@ -215,5 +215,14 @@ module ScanBeacon
         payload_length = response[1].unpack('C')[0]
         response << port.read(payload_length)
       end
+
+      def bg_command(*args)
+        self.class.bg_command(*args)
+      end
+
+      def bg_read(*args)
+        self.class.bg_read(*args)
+      end
+
   end
 end
