@@ -41,7 +41,7 @@ module ScanBeacon
 
     def open
       response = nil
-      configure_port
+      self.class.configure_port(@port)
       File.open(@port, 'r+b') do |file|
         @file = file
         response = yield(self)
@@ -50,16 +50,16 @@ module ScanBeacon
       return response
     end
 
-    def configure_port
+    def self.configure_port(port)
       if RUBY_PLATFORM =~ /linux/
-        system("stty -F #{@port} 115200 raw -brkint -icrnl -imaxbel -opost -isig -icanon -iexten -echo -echoe -echok -echoctl -echoke")
+        system("stty -F #{port} 115200 raw -brkint -icrnl -imaxbel -opost -isig -icanon -iexten -echo -echoe -echok -echoctl -echoke")
       end
     end
 
     def get_addr
       # use a timeout here because we're using this to detect BLE112s and if it
       # isn't one, it may not respond right away
-      response = bg_command(@file, BG_MSG_CLASS_SYSTEM, BG_GET_ADDRESS,nil,nil,0.2)
+      response = bg_command(@file, BG_MSG_CLASS_SYSTEM, BG_GET_ADDRESS,nil,nil,0.5)
       response[4..-1].reverse.unpack("H2:H2:H2:H2:H2:H2").join(":") if response && response.length == 10
     end
 
@@ -136,6 +136,7 @@ module ScanBeacon
       # try to reset all the devices
       device_count = possible_devices.count
       possible_devices.each do |device_path|
+        configure_port(device_path)
         File.open(device_path, 'r+b') do |file|
           bg_command(file, BG_MSG_CLASS_GAP, BG_DISCOVER_STOP, nil, nil, 0.5)
         end
