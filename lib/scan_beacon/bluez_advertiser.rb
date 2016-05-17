@@ -1,6 +1,6 @@
 module ScanBeacon
   class BlueZAdvertiser < GenericIndividualAdvertiser
- 
+
     attr_reader :addr
 
     def initialize(opts = {})
@@ -16,7 +16,7 @@ module ScanBeacon
       # You must call start advertising any time you change the advertisement bytes
       # otherwise they won't take
       if with_rotation
-        @addr = random_addr 
+        @addr = random_addr
         BlueZ.start_advertising @device_id, addr
       else
         # have to pass nil for addr if we don't want to override it and use the internal
