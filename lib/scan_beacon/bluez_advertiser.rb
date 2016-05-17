@@ -7,7 +7,7 @@ module ScanBeacon
       @device_id = opts[:device_id] || BlueZ.devices.map {|d| d[:device_id]}[0]
       raise "No available devices" if @device_id.nil?
       BlueZ.device_up @device_id
-      addr = @initial_addr = BlueZ.devices.find {|d| d[:device_id] == @device_id}[:addr]
+      @addr = @initial_addr = BlueZ.devices.find {|d| d[:device_id] == @device_id}[:addr]
       super(opts)
     end
 
