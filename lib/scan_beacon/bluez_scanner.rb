@@ -23,5 +23,4 @@ module ScanBeacon
     end
 
   end
-  DefaultScanner = BlueZScanner
 end
