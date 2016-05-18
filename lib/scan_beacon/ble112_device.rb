@@ -134,7 +134,6 @@ module ScanBeacon
 
     def self.reset_all
       # try to reset all the devices
-      device_count = possible_devices.count
       possible_devices.each do |device_path|
         configure_port(device_path)
         File.open(device_path, 'r+b') do |file|
