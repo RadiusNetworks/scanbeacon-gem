@@ -4,7 +4,6 @@
 #include "ruby.h"
 #import <Foundation/Foundation.h>
 #import <IOBluetooth/IOBluetooth.h>
-#import <CoreBluetooth/CoreBluetooth.h>
 
 // Defining a space for information and references about the module to be stored internally
 VALUE cb_module = Qnil;
