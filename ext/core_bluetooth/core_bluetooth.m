@@ -5,6 +5,11 @@
 #import <Foundation/Foundation.h>
 #import <IOBluetooth/IOBluetooth.h>
 
+#if __MAC_OS_X_VERSION_MAX_ALLOWED >= 101200
+// macOS Sierra requires you to import CB separately
+#import <CoreBluetooth/CoreBluetooth.h>
+#endif
+
 // Defining a space for information and references about the module to be stored internally
 VALUE cb_module = Qnil;
 
