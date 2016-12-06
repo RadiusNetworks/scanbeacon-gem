@@ -63,7 +63,7 @@ VALUE method_stop_advertising();
                              @"data": mfgData,
                              @"rssi": RSSI
     };
-    @synchronized(_scans) {
+    @synchronized(self) {
       [_scans addObject: scan];
     }
   } else if (serviceData) {
@@ -74,7 +74,7 @@ VALUE method_stop_advertising();
                              @"rssi": RSSI,
                               @"service_uuid": uuid.data
     };
-    @synchronized(_scans) {
+    @synchronized(self) {
       [_scans addObject: scan];
     }
   }
@@ -97,7 +97,7 @@ VALUE method_stop_advertising();
 - (NSArray *) scans
 {
   NSArray *scanCopy;
-  @synchronized(_scans) {
+  @synchronized(self) {
     scanCopy = _scans;
     _scans = [[NSMutableArray alloc] init];
   }
@@ -169,7 +169,7 @@ VALUE method_scan()
     @try {
       bleDelegate = [[BLEDelegate alloc] init];
       dispatch_queue_t scanQueue;
-      scanQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0);
+      scanQueue = dispatch_queue_create("scan_beacon", DISPATCH_QUEUE_SERIAL);
       centralManager = [[CBCentralManager alloc] initWithDelegate:bleDelegate queue:scanQueue];
       BOOL exit = NO;
       while (!exit) {
